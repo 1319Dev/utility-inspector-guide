@@ -1305,6 +1305,18 @@ a.secondary-btn.dr-link-btn {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.sow-viewer-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sow-viewer-nav .secondary-btn {
+  min-width: 44px;
+  padding: 8px 12px;
 }
 
 .sow-pdf-wrap {
@@ -1314,19 +1326,29 @@ a.secondary-btn.dr-link-btn {
   border-radius: 12px;
   background: #020617;
   border: 1px solid #334155;
+  -webkit-overflow-scrolling: touch;
 }
 
-#sow-pdf-canvas,
-.sow-pdf-hl {
+.sow-pdf-stage {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  line-height: 0;
+}
+
+#sow-pdf-canvas {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  background: #fff;
 }
 
 .sow-pdf-hl {
   position: absolute;
   left: 0;
   top: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 

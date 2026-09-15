@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
-      content="Utility Inspector Guide — field toolkit: trench slope, photo stamp, Station Locator, Scope of Work search, depth of cover, separation, 811 checklist, and more. Educational use only."
+      content="Utility Inspector Guide — field toolkit: trench slope, photo stamp, Station Locator, Scope of Work search, depth of cover, 811 checklist, and more. Educational use only."
     />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" href="./favicon.png" />
@@ -55,11 +55,6 @@
               <span class="hub-title">Depth of Cover</span>
               <span class="hub-desc">Probe/tape or phone vs min</span>
             </button>
-            <button type="button" class="hub-tile" data-nav="sep">
-              <span class="hub-icon" aria-hidden="true">↔️</span>
-              <span class="hub-title">Separation Check</span>
-              <span class="hub-desc">Clearance pass / fail</span>
-            </button>
             <button type="button" class="hub-tile" data-nav="locate">
               <span class="hub-icon" aria-hidden="true">🎨</span>
               <span class="hub-title">811 / Locate</span>
@@ -93,7 +88,7 @@
             <button type="button" class="hub-tile" data-nav="scope">
               <span class="hub-icon" aria-hidden="true">📄</span>
               <span class="hub-title">Scope of Work</span>
-              <span class="hub-desc">Search · open PDF page</span>
+              <span class="hub-desc">Preview · search · highlight</span>
             </button>
             <button type="button" class="hub-tile" data-nav="station">
               <span class="hub-icon" aria-hidden="true">📍</span>
@@ -213,16 +208,6 @@
           <span class="top-spacer"></span>
         </header>
         <div class="tool-body" id="cover-root"></div>
-      </section>
-
-      <!-- SEPARATION -->
-      <section id="view-sep" class="view view-scroll" data-view="sep" hidden>
-        <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
-          <h1>Separation Check</h1>
-          <span class="top-spacer"></span>
-        </header>
-        <div class="tool-body" id="sep-root"></div>
       </section>
 
       <!-- 811 / LOCATE -->
@@ -345,7 +330,7 @@
         <h2>About &amp; disclaimer</h2>
         <p>
           <strong>Utility Inspector Guide</strong> is a mobile field toolkit: OSHA trench slope overlays,
-          stamped photos, bell hole checklist, cover/separation checks, 811 checklist, trench card, pressure log, daily progress report, Station Locator (KMZ), Weather Radar (keyless NEXRAD + Blitzortung), Scope of Work search (PDF page highlights), and lookups.
+          stamped photos, bell hole checklist, depth of cover, 811 checklist, trench card, pressure log, daily progress report, Station Locator (KMZ), Weather Radar (keyless NEXRAD + Blitzortung), Scope of Work search (PDF page highlights), and lookups.
         </p>
         <p class="disclaimer">
           <strong>Educational / field reference only.</strong> Not engineering advice. Not a substitute for a

@@ -4,7 +4,6 @@
 import { enterSlope, leaveSlope, slopeHelp } from './tools/slope.js';
 import { mountPhoto } from './tools/photoStamp.js';
 import { mountCover } from './tools/depthCover.js';
-import { mountSep } from './tools/separation.js';
 import { mountLocate } from './tools/locate811.js';
 import { mountTrenchCard } from './tools/trenchCard.js';
 import { mountPressure } from './tools/pressureLog.js';
@@ -22,7 +21,6 @@ const VIEWS = [
   'slope',
   'photo',
   'cover',
-  'sep',
   'locate',
   'trench-card',
   'pressure',
@@ -83,7 +81,6 @@ function ensureMounted(name) {
   const map = {
     photo: ['photo-root', mountPhoto],
     cover: ['cover-root', mountCover],
-    sep: ['sep-root', mountSep],
     locate: ['locate-root', mountLocate],
     'trench-card': ['trench-card-root', mountTrenchCard],
     pressure: ['pressure-root', mountPressure],

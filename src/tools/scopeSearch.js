@@ -23,6 +23,10 @@ let doc = null;
 let pdfReady = null;
 let pdfDoc = null; // cached pdf.js document
 let lastTerms = [];
+let currentPage = 1;
+let renderTask = null;
+let previewTerms = [];
+let previewFocus = '';
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -174,6 +178,8 @@ async function loadPdfjs() {
 async function extractPdf(file) {
   const pdfjsLib = await loadPdfjs();
   const buf = await file.arrayBuffer();
+  // Keep an untouched copy for IndexedDB / preview; pdf.js may detach worker buffers.
+  const stored = buf.slice(0);
   const pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
   const parts = [];
   const chunks = [];
@@ -192,7 +198,7 @@ async function extractPdf(file) {
   return {
     text: normalizeText(parts.join('\n\n')),
     chunks,
-    pdfBlob: new Blob([buf], { type: 'application/pdf' }),
+    pdfBlob: new Blob([stored], { type: 'application/pdf' }),
     pageCount: pdf.numPages,
   };
 }
@@ -300,13 +306,38 @@ function setStatus(msg, isError = false) {
 function hideViewer() {
   const viewer = root.querySelector('#sow-viewer');
   if (viewer) viewer.hidden = true;
+  if (renderTask) {
+    try {
+      renderTask.cancel();
+    } catch {
+      /* ignore */
+    }
+    renderTask = null;
+  }
+}
+
+async function pdfBytesFromStored() {
+  const raw = doc?.pdfBlob;
+  if (!raw) return null;
+  if (raw instanceof ArrayBuffer) return raw.slice(0);
+  if (ArrayBuffer.isView(raw)) {
+    return raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
+  }
+  if (typeof raw.arrayBuffer === 'function') {
+    const buf = await raw.arrayBuffer();
+    return buf.slice(0);
+  }
+  return null;
 }
 
 async function getPdfDocument() {
   if (!doc?.pdfBlob) return null;
   if (pdfDoc) return pdfDoc;
   const pdfjsLib = await loadPdfjs();
-  const buf = await doc.pdfBlob.arrayBuffer();
+  const buf = await pdfBytesFromStored();
+  if (!buf || buf.byteLength < 8) {
+    throw new Error('PDF data missing — re-upload the file.');
+  }
   pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
   return pdfDoc;
 }
@@ -315,6 +346,17 @@ function itemMatchesTerms(str, terms) {
   if (!str || !terms.length) return false;
   const lower = str.toLowerCase();
   return terms.some((t) => t && lower.includes(t));
+}
+
+function updatePageNav(pageNum, pageCount) {
+  const label = root.querySelector('#sow-viewer-label');
+  const prev = root.querySelector('#sow-page-prev');
+  const next = root.querySelector('#sow-page-next');
+  const nav = root.querySelector('#sow-viewer-nav');
+  if (label) label.textContent = `PDF page ${pageNum} / ${pageCount}`;
+  if (nav) nav.hidden = false;
+  if (prev) prev.disabled = pageNum <= 1;
+  if (next) next.disabled = pageNum >= pageCount;
 }
 
 /**
@@ -326,81 +368,130 @@ async function openPdfPage(pageNum, terms, focusText) {
   const hl = root.querySelector('#sow-pdf-hl');
   const label = root.querySelector('#sow-viewer-label');
   const textPane = root.querySelector('#sow-text-pane');
-  if (!viewer || !canvas) return;
+  const wrap = root.querySelector('#sow-pdf-wrap');
+  if (!viewer || !canvas || !hl || !wrap) return;
 
   viewer.hidden = false;
   textPane.hidden = true;
+  wrap.hidden = false;
   canvas.hidden = false;
   hl.hidden = false;
-  label.textContent = `PDF page ${pageNum}`;
+  currentPage = pageNum;
+  previewTerms = terms && terms.length ? [...terms] : [];
+  previewFocus = focusText || '';
+  if (label) label.textContent = `Loading page ${pageNum}…`;
   viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
+    if (renderTask) {
+      try {
+        renderTask.cancel();
+      } catch {
+        /* ignore */
+      }
+      renderTask = null;
+    }
+
     const pdf = await getPdfDocument();
     if (!pdf) throw new Error('PDF not available — re-upload the file.');
+    const total = pdf.numPages || doc.pageCount || 1;
+    pageNum = Math.max(1, Math.min(total, pageNum || 1));
+    currentPage = pageNum;
+    updatePageNav(pageNum, total);
+
     const page = await pdf.getPage(pageNum);
     const base = page.getViewport({ scale: 1 });
-    const maxW = Math.min(root.clientWidth - 8, 900) || 360;
-    const scale = Math.min(2.2, maxW / base.width);
+    const avail = Math.max(280, (wrap.clientWidth || root.clientWidth || 360) - 4);
+    const cssWidth = Math.min(avail, 900);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const scale = (cssWidth * dpr) / base.width;
     const viewport = page.getViewport({ scale });
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     canvas.width = Math.floor(viewport.width);
     canvas.height = Math.floor(viewport.height);
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+
     hl.width = canvas.width;
     hl.height = canvas.height;
     hl.style.width = canvas.style.width;
     hl.style.height = canvas.style.height;
 
-    await page.render({ canvasContext: ctx, viewport }).promise;
+    const stage = root.querySelector('#sow-pdf-stage');
+    if (stage) {
+      stage.style.width = canvas.style.width;
+    }
+
+    renderTask = page.render({ canvasContext: ctx, viewport });
+    await renderTask.promise;
+    renderTask = null;
 
     const content = await page.getTextContent();
     const hlCtx = hl.getContext('2d');
     hlCtx.clearRect(0, 0, hl.width, hl.height);
     hlCtx.fillStyle = 'rgba(249, 115, 22, 0.38)';
 
-    const termSet = terms && terms.length ? terms : tokenize(focusText || '');
+    const termSet = previewTerms.length ? previewTerms : tokenize(previewFocus || '');
     let firstRect = null;
 
     function paintItem(item) {
-      const [a, b, c, d, e, f] = item.transform;
+      const transform = item.transform || [1, 0, 0, 1, 0, 0];
+      const e = transform[4];
+      const f = transform[5];
+      const c = transform[2];
+      const d = transform[3];
       const pt = viewport.convertToViewportPoint(e, f);
       const fontH = Math.max(8, Math.hypot(c, d) * viewport.scale || Math.abs(d) * viewport.scale);
       const w = Math.max(4, (item.width || 0) * viewport.scale);
       const x = pt[0];
       const y = pt[1] - fontH;
       hlCtx.fillRect(x, y, w, fontH * 1.15);
-      if (!firstRect) firstRect = { x, y, w, h: fontH };
+      if (!firstRect) firstRect = { x: x / dpr, y: y / dpr, w: w / dpr, h: fontH / dpr };
     }
 
-    for (const item of content.items) {
-      if (!('str' in item) || !item.str?.trim()) continue;
-      if (itemMatchesTerms(item.str, termSet)) paintItem(item);
-    }
-
-    // Fallback: tokens from the excerpt itself
-    if (!firstRect && focusText) {
-      const words = tokenize(focusText).slice(0, 16);
+    if (termSet.length) {
       for (const item of content.items) {
         if (!('str' in item) || !item.str?.trim()) continue;
-        if (itemMatchesTerms(item.str, words)) paintItem(item);
+        if (itemMatchesTerms(item.str, termSet)) paintItem(item);
+      }
+      if (!firstRect && previewFocus) {
+        const words = tokenize(previewFocus).slice(0, 16);
+        for (const item of content.items) {
+          if (!('str' in item) || !item.str?.trim()) continue;
+          if (itemMatchesTerms(item.str, words)) paintItem(item);
+        }
       }
     }
 
     if (firstRect) {
-      const wrap = root.querySelector('#sow-pdf-wrap');
-      if (wrap) {
-        wrap.scrollTop = Math.max(0, firstRect.y - 40);
-      }
+      wrap.scrollTop = Math.max(0, firstRect.y - 40);
+    } else {
+      wrap.scrollTop = 0;
     }
   } catch (err) {
+    if (err?.name === 'RenderingCancelledException') return;
     console.error(err);
-    label.textContent = err.message || String(err);
+    if (label) label.textContent = err.message || String(err);
   }
 }
 
+async function previewPdf(pageNum = 1, terms = [], focusText = '') {
+  if (!(doc?.kind === 'pdf' && doc.pdfBlob)) {
+    setStatus('Re-upload the PDF to enable page preview.', true);
+    return;
+  }
+  await openPdfPage(pageNum, terms, focusText);
+}
+
+async function shiftPage(delta) {
+  if (!doc?.pdfBlob) return;
+  const pdf = await getPdfDocument();
+  const total = pdf?.numPages || doc.pageCount || 1;
+  const next = Math.max(1, Math.min(total, currentPage + delta));
+  if (next === currentPage && delta !== 0) return;
+  await openPdfPage(next, previewTerms, previewFocus);
+}
 
 function openTextHit(chunk, terms) {
   const viewer = root.querySelector('#sow-viewer');
@@ -408,9 +499,13 @@ function openTextHit(chunk, terms) {
   const hl = root.querySelector('#sow-pdf-hl');
   const label = root.querySelector('#sow-viewer-label');
   const textPane = root.querySelector('#sow-text-pane');
+  const wrap = root.querySelector('#sow-pdf-wrap');
+  const nav = root.querySelector('#sow-viewer-nav');
   if (!viewer) return;
 
   viewer.hidden = false;
+  if (wrap) wrap.hidden = true;
+  if (nav) nav.hidden = true;
   if (canvas) canvas.hidden = true;
   if (hl) hl.hidden = true;
   textPane.hidden = false;
@@ -455,13 +550,32 @@ function renderDocMeta() {
       <strong>${escapeHtml(doc.name)}</strong>
       <span class="meta">${escapeHtml(doc.kind || 'file')} · ${doc.chunks.length} sections · ~${kb} KB text${pages} · ${escapeHtml(doc.uploadedAt || '')}</span>
       <div class="btn-row">
+        ${
+          doc.kind === 'pdf' && doc.pdfBlob
+            ? '<button type="button" class="primary-btn" id="sow-preview">Preview document</button>'
+            : doc.kind === 'pdf'
+              ? ''
+              : '<button type="button" class="secondary-btn" id="sow-preview-text">Preview text</button>'
+        }
         <button type="button" class="danger-btn" id="sow-clear">Remove</button>
       </div>
     </div>`;
   searchCard.hidden = false;
+  meta.querySelector('#sow-preview')?.addEventListener('click', () => {
+    previewPdf(1, [], '');
+  });
+  meta.querySelector('#sow-preview-text')?.addEventListener('click', () => {
+    openTextHit(
+      { heading: doc.name, text: (doc.text || '').slice(0, 4000), page: 1 },
+      []
+    );
+  });
   meta.querySelector('#sow-clear')?.addEventListener('click', async () => {
     doc = null;
     pdfDoc = null;
+    currentPage = 1;
+    previewTerms = [];
+    previewFocus = '';
     await idbClear();
     renderDocMeta();
     setStatus('Document removed from this device.');
@@ -576,6 +690,10 @@ async function handleFile(file) {
     const q = root.querySelector('#sow-q');
     if (q.value.trim()) renderResults(q.value);
     else root.querySelector('#sow-results').innerHTML = '<p class="muted">Ask a question or search keywords.</p>';
+    if (doc.kind === 'pdf' && doc.pdfBlob) {
+      // Open page 1 so the document preview is visible immediately after upload
+      previewPdf(1, [], '').catch((err) => console.warn('PDF preview failed', err));
+    }
   } catch (err) {
     console.error(err);
     setStatus(err.message || String(err), true);
@@ -587,7 +705,7 @@ async function handleFile(file) {
 export function mountScope(el) {
   root = el;
   root.innerHTML = `
-    <p class="muted">Upload your project Scope of Work, then search or ask a question. Tap a hit to open the <strong>PDF page with highlights</strong> (or a highlighted text section). Stays on this device.</p>
+    <p class="muted">Upload your project Scope of Work to <strong>preview the document</strong>, then search or ask a question. Tap a hit to jump to that <strong>PDF page with highlights</strong>. Stays on this device.</p>
     <div class="card">
       <h3>Upload Scope of Work</h3>
       <label class="sow-drop" id="sow-drop">
@@ -614,11 +732,17 @@ export function mountScope(el) {
     <div class="card sow-viewer" id="sow-viewer" hidden>
       <div class="sow-viewer-bar">
         <strong id="sow-viewer-label">Viewer</strong>
+        <div class="sow-viewer-nav" id="sow-viewer-nav" hidden>
+          <button type="button" class="secondary-btn" id="sow-page-prev" aria-label="Previous page">‹</button>
+          <button type="button" class="secondary-btn" id="sow-page-next" aria-label="Next page">›</button>
+        </div>
         <button type="button" class="secondary-btn" id="sow-viewer-close">Close</button>
       </div>
       <div class="sow-pdf-wrap" id="sow-pdf-wrap">
-        <canvas id="sow-pdf-canvas"></canvas>
-        <canvas id="sow-pdf-hl" class="sow-pdf-hl"></canvas>
+        <div class="sow-pdf-stage" id="sow-pdf-stage">
+          <canvas id="sow-pdf-canvas"></canvas>
+          <canvas id="sow-pdf-hl" class="sow-pdf-hl"></canvas>
+        </div>
       </div>
       <div id="sow-text-pane" class="sow-text-pane" hidden></div>
     </div>
@@ -669,6 +793,8 @@ export function mountScope(el) {
     hideViewer();
   });
   root.querySelector('#sow-viewer-close').addEventListener('click', hideViewer);
+  root.querySelector('#sow-page-prev')?.addEventListener('click', () => shiftPage(-1));
+  root.querySelector('#sow-page-next')?.addEventListener('click', () => shiftPage(1));
 
   idbGet().then((saved) => {
     if (saved?.chunks?.length) {

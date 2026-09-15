@@ -2,7 +2,7 @@
   "name": "utility-inspector-guide",
   "version": "2.0.0",
   "private": true,
-  "description": "Mobile PWA field toolkit for utility inspectors: trench slope, photo stamp, depth of cover, separation, 811 checklist, and more",
+  "description": "Mobile PWA field toolkit for utility inspectors: trench slope, photo stamp, depth of cover, 811 checklist, and more",
   "type": "module",
   "scripts": {
     "dev": "vite",
