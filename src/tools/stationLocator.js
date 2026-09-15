@@ -357,12 +357,105 @@ function classifyPlacemark(geom) {
   return null;
 }
 
-function parseKmlText(kmlText) {
-  const doc = new DOMParser().parseFromString(kmlText, 'application/xml');
-  if (doc.querySelector('parsererror')) {
-    throw new Error('Could not parse KML XML.');
+/** Strip BOM, fix bare &, and CDATA-wrap description/name HTML for DOMParser. */
+function sanitizeKmlText(text) {
+  let s = String(text || '').replace(/^\uFEFF/, '');
+  // Keep amp/lt/gt/apos/quot and numeric refs; escape everything else (&nbsp;, AT&T, …)
+  s = s.replace(/&(?!(?:amp|lt|gt|apos|quot|#(?:x[\da-fA-F]+|\d+));)/g, '&amp;');
+  // Google Earth often embeds raw HTML in <description> / <name> without CDATA
+  s = s.replace(
+    /<\s*((?:[\w.-]+:)?(?:description|name))\b([^>]*)>([\s\S]*?)<\s*\/\s*\1\s*>/gi,
+    (full, tag, attrs, body) => {
+      if (/<!\[CDATA\[/i.test(body)) return full;
+      const safe = String(body).replace(/]]>/g, ']] >');
+      return `<${tag}${attrs}><![CDATA[${safe}]]></${tag}>`;
+    }
+  );
+  return s;
+}
+
+function stripCdata(s) {
+  return String(s || '')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1')
+    .trim();
+}
+
+function extractTagText(block, tag) {
+  const re = new RegExp(
+    `<\\s*(?:[\\w.-]+:)?${tag}\\b[^>]*>([\\s\\S]*?)<\\s*\\/(?:[\\w.-]+:)?${tag}\\s*>`,
+    'i'
+  );
+  const m = String(block || '').match(re);
+  return m ? stripCdata(m[1]).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
+}
+
+function extractCoordinatesBlocks(block) {
+  const out = [];
+  const re =
+    /<\s*(?:[\w.-]+:)?coordinates\b[^>]*>([\s\S]*?)<\s*\/(?:[\w.-]+:)?coordinates\s*>/gi;
+  let m;
+  while ((m = re.exec(block))) {
+    const pts = parseCoordinatesText(stripCdata(m[1]));
+    if (pts.length) out.push(pts);
   }
-  const rootEl = doc.documentElement;
+  // gx:Track coords
+  const gx =
+    /<\s*(?:[\w.-]+:)?coord\b[^>]*>([\s\S]*?)<\s*\/(?:[\w.-]+:)?coord\s*>/gi;
+  const trackPts = [];
+  while ((m = gx.exec(block))) {
+    const p = parseCoordPair(stripCdata(m[1]));
+    if (p) trackPts.push(p);
+  }
+  if (trackPts.length) out.push(trackPts);
+  return out;
+}
+
+function classifyFromFields(name, description, pointCoord, linePts) {
+  return classifyPlacemark({ name, description, pointCoord, linePts });
+}
+
+/** Lenient Placemark scrape when DOMParser rejects Google Earth XML. */
+function parseKmlLenient(kmlText) {
+  const stations = [];
+  const features = [];
+  const seenSta = new Set();
+  const pmRe =
+    /<\s*(?:[\w.-]+:)?Placemark\b[^>]*>([\s\S]*?)<\s*\/(?:[\w.-]+:)?Placemark\s*>/gi;
+  let m;
+  let placemarkCount = 0;
+  while ((m = pmRe.exec(kmlText))) {
+    placemarkCount += 1;
+    const block = m[1];
+    const name = extractTagText(block, 'name');
+    const description = extractTagText(block, 'description');
+    const coordSets = extractCoordinatesBlocks(block);
+    let pointCoord = null;
+    let linePts = [];
+    if (coordSets.length === 1 && coordSets[0].length === 1) {
+      pointCoord = coordSets[0][0];
+    } else if (coordSets.length) {
+      // Prefer Point-sized first set; otherwise treat longest as line
+      const single = coordSets.find((c) => c.length === 1);
+      if (single) pointCoord = single[0];
+      const line = coordSets.reduce((a, b) => (b.length > a.length ? b : a), []);
+      if (line.length >= 2) linePts = line;
+      else if (!pointCoord && line[0]) pointCoord = line[0];
+    }
+    const classified = classifyFromFields(name, description, pointCoord, linePts);
+    if (!classified) continue;
+    if (classified.kind === 'station') {
+      const key = `${classified.item.name}|${classified.item.lat.toFixed(6)}|${classified.item.lon.toFixed(6)}`;
+      if (seenSta.has(key)) continue;
+      seenSta.add(key);
+      stations.push(classified.item);
+    } else {
+      features.push(classified.item);
+    }
+  }
+  return { stations, features, placemarkCount, mode: 'lenient' };
+}
+
+function collectFromDom(rootEl) {
   const placemarks = findDescendants(rootEl, 'placemark');
   const stations = [];
   const features = [];
@@ -382,7 +475,25 @@ function parseKmlText(kmlText) {
     }
   }
 
-  return { stations, features, placemarkCount: placemarks.length };
+  return { stations, features, placemarkCount: placemarks.length, mode: 'dom' };
+}
+
+function parseKmlText(kmlText) {
+  const cleaned = sanitizeKmlText(kmlText);
+  const doc = new DOMParser().parseFromString(cleaned, 'application/xml');
+  if (!doc.querySelector('parsererror')) {
+    return collectFromDom(doc.documentElement);
+  }
+  // Retry original (in case sanitize mangled a rare entity), then lenient scrape
+  const doc2 = new DOMParser().parseFromString(String(kmlText || '').replace(/^\uFEFF/, ''), 'application/xml');
+  if (!doc2.querySelector('parsererror')) {
+    return collectFromDom(doc2.documentElement);
+  }
+  const loose = parseKmlLenient(cleaned);
+  if (loose.placemarkCount || loose.stations.length || loose.features.length) {
+    return loose;
+  }
+  throw new Error('Could not parse KML XML (invalid markup).');
 }
 
 function isZipMagic(u8) {
@@ -795,7 +906,21 @@ async function handleFile(file) {
   if (btn) btn.disabled = true;
   try {
     const { kmlTexts, sourceName } = await readKmzOrKml(file);
-    const parsed = mergeParsedKml(kmlTexts.map((t) => parseKmlText(t)));
+    const parts = [];
+    const layerErrors = [];
+    for (let i = 0; i < kmlTexts.length; i++) {
+      try {
+        parts.push(parseKmlText(kmlTexts[i]));
+      } catch (err) {
+        console.warn(`KML layer ${i + 1} failed:`, err);
+        layerErrors.push(`layer ${i + 1}: ${err.message || String(err)}`);
+      }
+    }
+    if (!parts.length) {
+      const detail = layerErrors.length ? ` (${layerErrors.join('; ')})` : '';
+      throw new Error(`Could not parse any KML in that file${detail}.`);
+    }
+    const parsed = mergeParsedKml(parts);
     if (!parsed.stations.length && !parsed.features.length) {
       throw new Error('No placemarks with coordinates found in that file.');
     }
@@ -820,9 +945,17 @@ async function handleFile(file) {
     }
     renderMapMeta();
     updateReadout();
-    const layerNote = kmlTexts.length > 1 ? ` across ${kmlTexts.length} KML layers` : '';
+    const okLayers = parts.length;
+    const totalLayers = kmlTexts.length;
+    const layerNote =
+      totalLayers > 1 ? ` across ${okLayers}/${totalLayers} KML layers` : '';
+    const warn =
+      layerErrors.length
+        ? ` · skipped ${layerErrors.length} broken layer(s): ${layerErrors.join('; ')}`
+        : '';
+    const modeNote = parts.some((p) => p.mode === 'lenient') ? ' · lenient parse' : '';
     setStatus(
-      `Ready — ${parsed.stations.length} stations, ${parsed.features.length} other features (${parsed.placemarkCount} placemarks${layerNote}).`
+      `Ready — ${parsed.stations.length} stations, ${parsed.features.length} other features (${parsed.placemarkCount} placemarks${layerNote}${modeNote}).${warn}`
     );
   } catch (err) {
     console.error(err);

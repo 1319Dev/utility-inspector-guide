@@ -1,7 +1,8 @@
 /**
  * Weather Radar — WeatherBug-style Leaflet map
- * US: IEM NEXRAD mosaic (NOAA/NWS) loop; elsewhere: RainViewer tiles.
- * Lightning: Blitzortung community websocket.
+ * Default: keyless NOAA NEXRAD mosaic via Iowa State Mesonet (no API key).
+ * Optional: RainViewer public tiles for global / outside CONUS (also keyless).
+ * Lightning: Blitzortung community websocket (keyless).
  * Educational field aid only. Not a substitute for NWS warnings / employer weather policy.
  */
 import { getGps, fmtGps } from '../store.js';
@@ -9,8 +10,10 @@ import { getGps, fmtGps } from '../store.js';
 const RV_META = 'https://api.rainviewer.com/public/weather-maps.json';
 const IEM_TMS = 'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0';
 const IEM_WWA = 'https://mesonet.agron.iastate.edu/cgi-bin/wms/us/wwa.cgi';
-const CARTO_DARK =
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const BASE_DARK =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+const BASE_DARK_REF =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
 const WS_HOSTS = ['ws1', 'ws7', 'ws8'];
 const STRIKE_TTL_MS = 30 * 60 * 1000;
 const MAX_STRIKES = 4000;
@@ -45,7 +48,7 @@ let resizeObs = null;
 let strikes = [];
 let nearest = null;
 let rvHost = 'https://tilecache.rainviewer.com';
-let sourceMode = 'auto'; // auto | iem | rv
+let sourceMode = 'iem'; // iem | rv | auto
 let activeSource = 'iem';
 let opacity = 0.7;
 let speed = 1;
@@ -229,7 +232,7 @@ function clearRadarLayers() {
 }
 
 function makeRadarLayer(frame) {
-  return L.tileLayer(frame.urlTemplate, {
+  const layer = L.tileLayer(frame.urlTemplate, {
     opacity: 0,
     tileSize: 256,
     maxNativeZoom: frame.maxNativeZoom || 8,
@@ -237,11 +240,21 @@ function makeRadarLayer(frame) {
     minZoom: 3,
     pane: 'overlayPane',
     className: 'wx-radar-tiles',
+    errorTileUrl:
+      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
     attribution:
       frame.source === 'iem'
-        ? 'Radar NOAA/NWS via <a href="https://mesonet.agron.iastate.edu/" target="_blank" rel="noopener">IEM</a>'
-        : '<a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>',
+        ? 'Radar NOAA/NWS via <a href="https://mesonet.agron.iastate.edu/" target="_blank" rel="noopener">IEM</a> (no API key)'
+        : '<a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> public',
   });
+  let errCount = 0;
+  layer.on('tileerror', () => {
+    errCount += 1;
+    if (errCount === 4 && frame.source === 'iem') {
+      setStatus('NEXRAD tiles failing to load — check network; tap source to try Global.', true);
+    }
+  });
+  return layer;
 }
 
 function showFrame(i, { holdPlay = false } = {}) {
@@ -335,7 +348,7 @@ function rebuildRadar(keepPlaying = true) {
     frames = iemLoopFrames();
     frameIndex = frames.length - 1;
     showFrame(frameIndex);
-    setStatus('NEXRAD mosaic · NOAA/NWS via Iowa State Mesonet');
+    setStatus('NEXRAD mosaic · NOAA/NWS via Iowa State Mesonet (no API key)');
     if (wasPlaying) startPlay();
   } else {
     fetchRadarMeta().then(() => {
@@ -798,11 +811,18 @@ async function initMap() {
   }).setView([c.lat, c.lon], activeSource === 'iem' ? 8 : 6);
   L.control.zoom({ position: 'topright' }).addTo(map);
 
-  baseLayer = L.tileLayer(CARTO_DARK, {
+  baseLayer = L.tileLayer(BASE_DARK, {
     maxZoom: 12,
     minZoom: 3,
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>',
+  }).addTo(map);
+  L.tileLayer(BASE_DARK_REF, {
+    maxZoom: 12,
+    minZoom: 3,
+    opacity: 0.9,
+    pane: 'overlayPane',
+    interactive: false,
   }).addTo(map);
 
   strikeLayer = L.layerGroup().addTo(map);
@@ -920,14 +940,14 @@ export function mountWeather(el) {
   nearest = null;
   frames = [];
   frameIndex = 0;
-  sourceMode = 'auto';
+  sourceMode = 'iem';
   opacity = 0.7;
   speed = 1;
   showLightning = true;
   showWarnings = true;
 
   el.innerHTML = `
-    <p class="muted">Interactive <strong>NEXRAD</strong> loop (US) with global RainViewer fallback and live <strong>Blitzortung</strong> lightning. Field awareness only — obey NWS warnings and your employer’s stop-work rules.</p>
+    <p class="muted">Free <strong>NOAA NEXRAD</strong> radar loop (no API key) via Iowa State Mesonet, plus live <strong>Blitzortung</strong> lightning. Optional Global tiles for outside the US. Field awareness only — obey NWS warnings and your employer’s stop-work rules.</p>
     <div id="wx-nws" class="wx-nws" hidden></div>
 
     <div class="wx-stage">
@@ -940,7 +960,7 @@ export function mountWeather(el) {
       <div class="wx-glass">
         <div class="wx-glass-top">
           <span id="wx-frame-label">Loading radar…</span>
-          <button type="button" class="wx-chip-btn" id="wx-source-mode" title="Cycle radar source">Auto</button>
+          <button type="button" class="wx-chip-btn" id="wx-source-mode" title="Cycle radar source (NEXRAD / Global / Auto)">NEXRAD</button>
         </div>
         <input id="wx-frame" type="range" min="0" max="0" value="0" aria-label="Radar time" />
         <div class="wx-glass-row">
@@ -983,7 +1003,7 @@ export function mountWeather(el) {
       <p class="disclaimer muted">Red ring ≈ 10 mi, yellow ≈ 30 mi. Blitzortung is a volunteer network — coverage and latency vary. 30/30 rule: if thunder follows lightning by ≤30s (~6 mi), seek shelter; wait 30 minutes after the last thunder. Not a warning service.</p>
     </div>
 
-    <p class="muted">Map: CARTO / OSM · US radar: NOAA NEXRAD via <a href="https://mesonet.agron.iastate.edu/" target="_blank" rel="noopener noreferrer">Iowa State Mesonet</a> · Global: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer">RainViewer</a> (personal/educational) · Lightning: <a href="https://www.blitzortung.org/" target="_blank" rel="noopener noreferrer">Blitzortung.org</a></p>
+    <p class="muted">Map: Esri Dark Gray (no key) · Radar: NOAA NEXRAD via <a href="https://mesonet.agron.iastate.edu/" target="_blank" rel="noopener noreferrer">Iowa State Mesonet</a> (free, no API key) · Optional global: <a href="https://www.rainviewer.com/api.html" target="_blank" rel="noopener noreferrer">RainViewer public API</a> · Lightning: <a href="https://www.blitzortung.org/" target="_blank" rel="noopener noreferrer">Blitzortung.org</a></p>
     <p class="muted" id="wx-status"></p>
   `;
 
