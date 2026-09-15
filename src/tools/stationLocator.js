@@ -385,24 +385,188 @@ function parseKmlText(kmlText) {
   return { stations, features, placemarkCount: placemarks.length };
 }
 
-async function readKmzOrKml(file) {
-  const lower = file.name.toLowerCase();
-  if (lower.endsWith('.kml') || file.type === 'application/vnd.google-earth.kml+xml') {
-    const text = await file.text();
-    return { kmlText: text, sourceName: file.name };
-  }
-  if (lower.endsWith('.kmz') || file.type === 'application/vnd.google-earth.kmz') {
-    const zip = await JSZip.loadAsync(await file.arrayBuffer());
-    const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
-    const preferred =
-      names.find((n) => /(^|\/)doc\.kml$/i.test(n)) ||
-      names.find((n) => /\.kml$/i.test(n));
-    if (!preferred) throw new Error('No .kml found inside KMZ.');
-    const kmlText = await zip.files[preferred].async('string');
-    return { kmlText, sourceName: file.name };
-  }
-  throw new Error('Please upload a .kmz or .kml file.');
+function isZipMagic(u8) {
+  return (
+    u8 &&
+    u8.length >= 4 &&
+    u8[0] === 0x50 &&
+    u8[1] === 0x4b &&
+    (u8[2] === 0x03 || u8[2] === 0x05 || u8[2] === 0x07)
+  );
 }
+
+function looksLikeKmlText(text) {
+  const head = String(text || '')
+    .slice(0, 600)
+    .toLowerCase();
+  return head.includes('<kml') || (head.includes('<?xml') && head.includes('kml'));
+}
+
+function decodeText(buf) {
+  return new TextDecoder('utf-8', { fatal: false }).decode(buf);
+}
+
+/** Resolve a relative href against a zip entry path (no external http(s)). */
+function resolveZipHref(basePath, href) {
+  let h = String(href || '')
+    .trim()
+    .replace(/^file:\/+/i, '');
+  h = h.split('#')[0].split('?')[0].replace(/\\/g, '/');
+  if (!h || /^(https?:|mailto:|javascript:)/i.test(h)) return null;
+  h = h.replace(/^\.\//, '');
+  const baseDir = basePath.includes('/') ? basePath.replace(/\/[^/]+$/, '/') : '';
+  const joined = (h.startsWith('/') ? h.slice(1) : baseDir + h).replace(/\/+/g, '/');
+  const parts = joined.split('/');
+  const out = [];
+  for (const p of parts) {
+    if (!p || p === '.') continue;
+    if (p === '..') {
+      if (out.length) out.pop();
+    } else {
+      out.push(p);
+    }
+  }
+  return out.join('/');
+}
+
+function findEntry(fileMap, path) {
+  if (!path) return null;
+  if (fileMap[path]) return path;
+  const lower = path.toLowerCase();
+  for (const n of Object.keys(fileMap)) {
+    if (n.toLowerCase() === lower) return n;
+  }
+  // basename fallback (Google Earth sometimes uses bare names)
+  const base = path.split('/').pop().toLowerCase();
+  const matches = Object.keys(fileMap).filter((n) => n.split('/').pop().toLowerCase() === base);
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function networkLinkHrefs(kmlText) {
+  const doc = new DOMParser().parseFromString(kmlText, 'application/xml');
+  if (doc.querySelector('parsererror')) return [];
+  const hrefs = [];
+  for (const nl of findDescendants(doc.documentElement, 'networklink')) {
+    for (const h of findDescendants(nl, 'href')) {
+      const t = textOf(h);
+      if (t) hrefs.push(t);
+    }
+  }
+  return hrefs;
+}
+
+/**
+ * Google Earth often ships a doc.kml that only NetworkLinks other .kml files
+ * inside the same KMZ. Follow those links and also pick up any leftover .kml.
+ */
+async function collectKmlTextsFromZip(arrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const fileMap = {};
+  for (const [name, entry] of Object.entries(zip.files)) {
+    if (!entry.dir) fileMap[name] = entry;
+  }
+  const kmlNames = Object.keys(fileMap).filter((n) => /\.kml$/i.test(n));
+  if (!kmlNames.length) throw new Error('No .kml found inside KMZ.');
+
+  const visited = new Set();
+  const kmlTexts = [];
+
+  async function visit(path) {
+    const real = findEntry(fileMap, path);
+    if (!real) return;
+    const key = real.toLowerCase();
+    if (visited.has(key)) return;
+    visited.add(key);
+    const entry = fileMap[real];
+
+    if (/\.kmz$/i.test(real)) {
+      const nested = await collectKmlTextsFromZip(await entry.async('arraybuffer'));
+      for (const t of nested) kmlTexts.push(t);
+      return;
+    }
+    if (!/\.kml$/i.test(real)) return;
+
+    const text = await entry.async('string');
+    kmlTexts.push(text);
+    for (const href of networkLinkHrefs(text)) {
+      const resolved = resolveZipHref(real, href);
+      if (resolved) await visit(resolved);
+    }
+  }
+
+  const start =
+    kmlNames.find((n) => /(^|\/)doc\.kml$/i.test(n)) ||
+    kmlNames[0];
+  await visit(start);
+  for (const n of kmlNames) await visit(n);
+
+  if (!kmlTexts.length) throw new Error('No readable KML inside KMZ.');
+  return kmlTexts;
+}
+
+function mergeParsedKml(parts) {
+  const stations = [];
+  const features = [];
+  let placemarkCount = 0;
+  const seenSta = new Set();
+  for (const p of parts) {
+    placemarkCount += p.placemarkCount || 0;
+    for (const s of p.stations || []) {
+      const key = `${s.name}|${Number(s.lat).toFixed(6)}|${Number(s.lon).toFixed(6)}`;
+      if (seenSta.has(key)) continue;
+      seenSta.add(key);
+      stations.push(s);
+    }
+    for (const f of p.features || []) features.push(f);
+  }
+  return { stations, features, placemarkCount };
+}
+
+async function readKmzOrKml(file) {
+  const lower = String(file.name || '').toLowerCase();
+  const mime = String(file.type || '').toLowerCase();
+  const buf = await file.arrayBuffer();
+  const u8 = new Uint8Array(buf);
+  const headText = decodeText(u8.slice(0, Math.min(u8.length, 800)));
+
+  const mimeKml =
+    mime === 'application/vnd.google-earth.kml+xml' ||
+    mime === 'application/xml' ||
+    mime === 'text/xml' ||
+    mime === 'text/plain';
+  const mimeKmz =
+    mime === 'application/vnd.google-earth.kmz' ||
+    mime === 'application/zip' ||
+    mime === 'application/x-zip-compressed' ||
+    mime === 'application/octet-stream';
+
+  const wantKml =
+    lower.endsWith('.kml') || (mimeKml && !lower.endsWith('.kmz') && looksLikeKmlText(headText));
+  const wantKmz =
+    lower.endsWith('.kmz') ||
+    mime === 'application/vnd.google-earth.kmz' ||
+    ((mimeKmz || !mime) && isZipMagic(u8));
+
+  if (wantKml && !isZipMagic(u8)) {
+    const kmlText = decodeText(u8);
+    if (!looksLikeKmlText(kmlText)) {
+      throw new Error('That file does not look like KML.');
+    }
+    return { kmlTexts: [kmlText], sourceName: file.name || 'map.kml' };
+  }
+
+  if (wantKmz || isZipMagic(u8)) {
+    const kmlTexts = await collectKmlTextsFromZip(buf);
+    return { kmlTexts, sourceName: file.name || 'map.kmz' };
+  }
+
+  if (looksLikeKmlText(headText)) {
+    return { kmlTexts: [decodeText(u8)], sourceName: file.name || 'map.kml' };
+  }
+
+  throw new Error('Please upload a .kmz or .kml file (iOS: use Files / Browse if Photos is shown).');
+}
+
 
 function stopWatch() {
   if (watchId != null && navigator.geolocation) {
@@ -630,8 +794,8 @@ async function handleFile(file) {
   const btn = root.querySelector('#sl-upload-btn');
   if (btn) btn.disabled = true;
   try {
-    const { kmlText, sourceName } = await readKmzOrKml(file);
-    const parsed = parseKmlText(kmlText);
+    const { kmlTexts, sourceName } = await readKmzOrKml(file);
+    const parsed = mergeParsedKml(kmlTexts.map((t) => parseKmlText(t)));
     if (!parsed.stations.length && !parsed.features.length) {
       throw new Error('No placemarks with coordinates found in that file.');
     }
@@ -656,8 +820,9 @@ async function handleFile(file) {
     }
     renderMapMeta();
     updateReadout();
+    const layerNote = kmlTexts.length > 1 ? ` across ${kmlTexts.length} KML layers` : '';
     setStatus(
-      `Ready — ${parsed.stations.length} stations, ${parsed.features.length} other features (${parsed.placemarkCount} placemarks).`
+      `Ready — ${parsed.stations.length} stations, ${parsed.features.length} other features (${parsed.placemarkCount} placemarks${layerNote}).`
     );
   } catch (err) {
     console.error(err);
@@ -679,12 +844,12 @@ export function mountStation(el) {
     <p class="muted">Upload a Google Earth <strong>KMZ/KML</strong> with station pins (e.g. every 100 ft). Your phone GPS snaps to the nearest <em>station</em>; poles, property lines, TWS, etc. show as nearby features only.</p>
     <div class="card">
       <h3>Upload map</h3>
-      <label class="sow-drop" id="sl-drop">
-        <input type="file" id="sl-file" accept=".kmz,.kml,application/vnd.google-earth.kmz,application/vnd.google-earth.kml+xml" hidden />
+      <div class="sow-drop" id="sl-drop" role="button" tabindex="0">
+        <input type="file" id="sl-file" accept=".kmz,.kml,.zip,application/vnd.google-earth.kmz,application/vnd.google-earth.kml+xml,application/zip,application/x-zip-compressed,application/octet-stream,*/*" hidden />
         <span class="sow-drop-title">Tap to choose KMZ / KML</span>
-        <span class="muted">Stored on this device only</span>
-      </label>
-      <button type="button" class="secondary-btn" id="sl-upload-btn" hidden>Upload</button>
+        <span class="muted">Google Earth KMZ or KML · stored on this device only</span>
+      </div>
+      <button type="button" class="primary-btn" id="sl-upload-btn">Choose KMZ / KML</button>
       <p class="muted" id="sl-status"></p>
       <div id="sl-map-meta"></div>
     </div>
@@ -711,11 +876,24 @@ export function mountStation(el) {
 
   const drop = el.querySelector('#sl-drop');
   const fileInput = el.querySelector('#sl-file');
-  drop.addEventListener('click', () => fileInput.click());
+  const openPicker = () => fileInput.click();
+  // Use a <div> (not <label>) + one programmatic click — nested <label> + click()
+  // double-fires on iOS Safari and the picker often never opens.
+  el.querySelector('#sl-upload-btn').addEventListener('click', openPicker);
+  drop.addEventListener('click', (e) => {
+    if (e.target === fileInput) return;
+    openPicker();
+  });
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  });
   fileInput.addEventListener('change', () => {
     const f = fileInput.files?.[0];
-    if (f) handleFile(f);
     fileInput.value = '';
+    if (f) handleFile(f);
   });
   ;['dragenter', 'dragover'].forEach((ev) => {
     drop.addEventListener(ev, (e) => {

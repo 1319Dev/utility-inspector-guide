@@ -1,6 +1,6 @@
 # Utility Inspector Guide
 
-Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, Station Locator (KMZ), Scope of Work search, daily progress report, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (RainViewer + Blitzortung lightning), emergency contacts, and material lookups.
+Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, Station Locator (KMZ), Scope of Work search, daily progress report, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (IEM NEXRAD / RainViewer + Blitzortung lightning), emergency contacts, and material lookups.
 
 > **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes.
 
@@ -19,8 +19,8 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 11. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
 12. **Scope of Work** — upload PDF / TXT / MD / DOCX; on-device keyword & question search with ranked excerpts (IndexedDB)
 13. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export
-14. **Station Locator** — upload Google Earth KMZ/KML; GPS nearest **station** snap (stations vs poles / property lines / TWS); saves station for Photo Stamp / Daily Report
-15. **Weather Radar** — RainViewer animated radar centered on GPS; Blitzortung live nearest-lightning distance / bearing (session buffer, 30 min)
+14. **Station Locator** — upload Google Earth KMZ/KML (iOS-friendly picker; multi-layer KMZ / NetworkLink); GPS nearest **station** snap (stations vs poles / property lines / TWS); saves station for Photo Stamp / Daily Report
+15. **Weather Radar** — WeatherBug-style Leaflet map: IEM NEXRAD loop (US), RainViewer global fallback, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
 
 ## Quick start
 
@@ -46,7 +46,7 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v9` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v10` (network-first HTML).
 
 ## Data privacy
 
