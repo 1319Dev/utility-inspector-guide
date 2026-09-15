@@ -50,6 +50,14 @@ const btnBoth = document.getElementById('btn-both');
 const metaTitle = document.getElementById('meta-title');
 const metaDetail = document.getElementById('meta-detail');
 const hudHint = document.getElementById('hud-hint');
+const btnMeasure = document.getElementById('btn-measure');
+const measurePanel = document.getElementById('measure-panel');
+const measAngleEl = document.getElementById('meas-angle');
+const measAllowedEl = document.getElementById('meas-allowed');
+const measDeltaEl = document.getElementById('meas-delta');
+const measStatusEl = document.getElementById('meas-status');
+const measErrorEl = document.getElementById('meas-error');
+const btnFreeze = document.getElementById('btn-freeze');
 
 const state = {
   soil: 'B',
@@ -68,6 +76,13 @@ const state = {
   pinchStartScale: 1,
   running: false,
   dpr: 1,
+  // Clinometer / Measure mode
+  measuring: false,
+  orientationListening: false,
+  measuredDeg: null,
+  frozen: false,
+  frozenDeg: null,
+  orientHandler: null,
 };
 
 function currentSoil() {
@@ -79,6 +94,7 @@ function updateMeta() {
   const approx = Math.round(angleFromHorizontal(s.hv));
   metaTitle.textContent = s.title;
   metaDetail.textContent = `H:V ${s.labelHV} · ≈${approx}° from horizontal`;
+  updateMeasureUI();
 }
 
 function setSoil(id) {
@@ -409,6 +425,196 @@ function resetOverlay() {
   draw();
 }
 
+
+/** Map DeviceOrientation to slope angle from horizontal (0–90°). */
+function angleFromOrientation(beta, gamma) {
+  const landscape = window.matchMedia('(orientation: landscape)').matches;
+  let deg;
+  if (landscape) {
+    deg = Math.abs(gamma ?? 0);
+    // gamma is typically −90…90; if wrapped odd, keep in 0–90
+    if (deg > 90) deg = 180 - deg;
+  } else {
+    // Portrait: beta 0 = flat face-up; ~90 = upright (steep face)
+    let b = beta ?? 0;
+    // Normalize into a useful tilt from flat
+    // When phone face-down-ish, beta can be near ±180
+    if (b > 90) b = 180 - b;
+    else if (b < -90) b = -180 - b;
+    deg = Math.abs(b);
+  }
+  return clamp(deg, 0, 90);
+}
+
+function requiredMaxDeg() {
+  return angleFromHorizontal(currentSoil().hv);
+}
+
+function setMeasureError(msg) {
+  if (!measErrorEl) return;
+  if (msg) {
+    measErrorEl.hidden = false;
+    measErrorEl.textContent = msg;
+  } else {
+    measErrorEl.hidden = true;
+    measErrorEl.textContent = '';
+  }
+}
+
+function updateMeasureUI() {
+  if (!measurePanel || measurePanel.hidden) return;
+
+  const allowed = requiredMaxDeg();
+  const allowedRound = Math.round(allowed);
+  measAllowedEl.textContent = `${allowedRound}°`;
+
+  const live = state.frozen ? state.frozenDeg : state.measuredDeg;
+  if (live == null || Number.isNaN(live)) {
+    measAngleEl.textContent = '—°';
+    measDeltaEl.textContent = '—';
+    measStatusEl.dataset.state = state.frozen ? 'frozen' : 'idle';
+    measStatusEl.textContent = state.frozen
+      ? 'FROZEN — no reading'
+      : 'Waiting for sensor…';
+    return;
+  }
+
+  const measured = live;
+  const measuredRound = Math.round(measured * 10) / 10;
+  const delta = measured - allowed;
+  const deltaRound = Math.round(delta * 10) / 10;
+  const pass = measured <= allowed + 1;
+
+  measAngleEl.textContent = `${measuredRound.toFixed(1)}°`;
+  const sign = deltaRound > 0 ? '+' : '';
+  measDeltaEl.textContent = `${sign}${deltaRound.toFixed(1)}°`;
+  measDeltaEl.style.color = pass ? 'var(--ok)' : 'var(--danger)';
+
+  if (state.frozen) {
+    measStatusEl.dataset.state = pass ? 'pass' : 'fail';
+    measStatusEl.textContent = pass ? 'PASS (held)' : 'TOO STEEP (held)';
+  } else {
+    measStatusEl.dataset.state = pass ? 'pass' : 'fail';
+    measStatusEl.textContent = pass ? 'PASS' : 'TOO STEEP';
+  }
+}
+
+function onDeviceOrientation(event) {
+  if (!state.measuring || state.frozen) return;
+  if (event.beta == null && event.gamma == null) {
+    setMeasureError('Motion sensors returned no data on this device.');
+    return;
+  }
+  setMeasureError('');
+  state.measuredDeg = angleFromOrientation(event.beta, event.gamma);
+  updateMeasureUI();
+}
+
+async function requestOrientationPermission() {
+  const DOE = window.DeviceOrientationEvent;
+  if (!DOE) {
+    throw new Error('Device orientation is not supported in this browser.');
+  }
+  if (typeof DOE.requestPermission === 'function') {
+    const result = await DOE.requestPermission();
+    if (result !== 'granted') {
+      throw new Error('Motion permission denied. Enable it in Settings to measure.');
+    }
+  }
+}
+
+function startOrientation() {
+  if (state.orientationListening) return;
+  state.orientHandler = onDeviceOrientation;
+  window.addEventListener('deviceorientation', state.orientHandler, true);
+  state.orientationListening = true;
+}
+
+function stopOrientation() {
+  if (!state.orientationListening) return;
+  window.removeEventListener('deviceorientation', state.orientHandler, true);
+  state.orientationListening = false;
+  state.orientHandler = null;
+}
+
+async function enableMeasure() {
+  setMeasureError('');
+  state.frozen = false;
+  state.frozenDeg = null;
+  state.measuredDeg = null;
+  if (btnFreeze) {
+    btnFreeze.setAttribute('aria-pressed', 'false');
+    btnFreeze.textContent = 'Freeze';
+  }
+
+  try {
+    await requestOrientationPermission();
+  } catch (err) {
+    setMeasureError(err.message || String(err));
+    measurePanel.hidden = false;
+    updateMeasureUI();
+    // Still show panel so user sees the error; leave measuring true so they can retry via toggle
+    return;
+  }
+
+  startOrientation();
+  measurePanel.hidden = false;
+  updateMeasureUI();
+
+  // Desktop / no-sensor fallback detection after a short wait
+  setTimeout(() => {
+    if (state.measuring && !state.frozen && state.measuredDeg == null && !measErrorEl?.textContent) {
+      setMeasureError(
+        'No tilt data yet. Use a phone with motion sensors over HTTPS, or check permissions.'
+      );
+    }
+  }, 2500);
+}
+
+function disableMeasure() {
+  stopOrientation();
+  state.frozen = false;
+  state.frozenDeg = null;
+  state.measuredDeg = null;
+  if (measurePanel) measurePanel.hidden = true;
+  if (btnFreeze) {
+    btnFreeze.setAttribute('aria-pressed', 'false');
+    btnFreeze.textContent = 'Freeze';
+  }
+  setMeasureError('');
+}
+
+async function toggleMeasure() {
+  state.measuring = !state.measuring;
+  btnMeasure.setAttribute('aria-pressed', state.measuring ? 'true' : 'false');
+  if (state.measuring) {
+    await enableMeasure();
+  } else {
+    disableMeasure();
+  }
+}
+
+function toggleFreeze() {
+  if (!state.measuring) return;
+  if (!state.frozen) {
+    if (state.measuredDeg == null) {
+      setMeasureError('No reading to freeze yet — hold phone on the face first.');
+      return;
+    }
+    state.frozen = true;
+    state.frozenDeg = state.measuredDeg;
+    btnFreeze.setAttribute('aria-pressed', 'true');
+    btnFreeze.textContent = 'Live';
+    setMeasureError('');
+  } else {
+    state.frozen = false;
+    state.frozenDeg = null;
+    btnFreeze.setAttribute('aria-pressed', 'false');
+    btnFreeze.textContent = 'Freeze';
+  }
+  updateMeasureUI();
+}
+
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
@@ -459,6 +665,15 @@ canvas.addEventListener('touchend', onPointerUp);
 
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+
+
+btnMeasure.addEventListener('click', () => {
+  toggleMeasure().catch((err) => setMeasureError(err.message || String(err)));
+});
+btnFreeze.addEventListener('click', toggleFreeze);
+window.addEventListener('orientationchange', () => {
+  if (state.measuring) updateMeasureUI();
+});
 
 // Default soil B is common; set UI
 setSoil('B');

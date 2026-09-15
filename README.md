@@ -11,6 +11,7 @@ Mobile-first **progressive web app** that puts your phone’s rear camera behind
 - Translucent slope overlays with H:V labels and angle callouts
 - Drag yellow baseline / anchor; pinch or use **Scale** to fit the trench
 - **Both walls** or single wall (**Flip side**)
+- **Measure** clinometer mode: hold the phone on the soil face and compare measured angle vs OSHA allowed max for the selected soil type (PASS / TOO STEEP), with Freeze
 - Installable PWA with offline cache after first visit
 - Large, high-contrast, glove-friendly controls
 
@@ -50,6 +51,7 @@ Netlify, Cloudflare Pages, Vercel, S3, etc.: set the publish directory to `dist`
 3. Drag the yellow baseline to the trench toe (or crest).
 4. Scale / pinch so the colored slope line matches the expected OSHA face.
 5. Compare the real wall to the guide — steeper than the guide may need more cut or another protective system.
+6. Optional: tap **Measure**, allow motion access, hold the phone flat against the face (long edge up the slope). Compare **Measured** to **Allowed max**; freeze a reading if needed.
 
 ## OSHA slopes used
 

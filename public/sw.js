@@ -1,5 +1,5 @@
 /* Trench Slope Guide — offline cache */
-const CACHE = 'trench-slope-guide-v1';
+const CACHE = 'trench-slope-guide-v2';
 const PRECACHE = [
   './',
   './index.html',

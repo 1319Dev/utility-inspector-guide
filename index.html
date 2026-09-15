@@ -44,6 +44,33 @@
         <div class="hud-hint" id="hud-hint">
           Drag baseline · Pinch or use scale to fit trench
         </div>
+
+        <div id="measure-panel" class="measure-panel" hidden>
+          <div class="measure-tip" id="measure-tip">
+            Hold phone flat against the soil face (long edge up the slope).
+          </div>
+          <div class="measure-readout" id="measure-readout">
+            <div class="measure-col">
+              <span class="measure-label">Measured</span>
+              <span class="measure-value" id="meas-angle">—°</span>
+            </div>
+            <div class="measure-col">
+              <span class="measure-label">Allowed max</span>
+              <span class="measure-value" id="meas-allowed">—°</span>
+            </div>
+            <div class="measure-col">
+              <span class="measure-label">Delta</span>
+              <span class="measure-value" id="meas-delta">—</span>
+            </div>
+          </div>
+          <div class="measure-status" id="meas-status" data-state="idle">Waiting for sensor…</div>
+          <p class="measure-error" id="meas-error" hidden></p>
+          <div class="measure-actions">
+            <button type="button" id="btn-freeze" class="secondary-btn" aria-pressed="false">
+              Freeze
+            </button>
+          </div>
+        </div>
       </main>
 
       <section class="controls" aria-label="Soil type and overlay controls">
@@ -92,6 +119,9 @@
           <button type="button" id="btn-both" class="secondary-btn" aria-pressed="true">
             Both walls
           </button>
+          <button type="button" id="btn-measure" class="secondary-btn" aria-pressed="false">
+            Measure
+          </button>
         </div>
       </section>
     </div>
@@ -116,7 +146,9 @@
         </p>
         <p class="howto">
           Tip: stand so the trench face fills the view. Drag the yellow baseline to the toe or
-          crest, then scale until the guide matches the expected slope.
+          crest, then scale until the guide matches the expected slope. Tap
+          <strong>Measure</strong> and hold the phone flat against the soil face to compare the
+          measured angle to the allowed OSHA max for the selected soil type.
         </p>
         <button type="submit" class="primary-btn">Got it</button>
       </form>

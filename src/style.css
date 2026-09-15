@@ -327,3 +327,136 @@ dialog::backdrop {
     border-right: 1px solid #1e293b;
   }
 }
+
+/* —— Clinometer / Measure mode —— */
+.measure-panel {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 2px solid #475569;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.measure-panel[hidden] {
+  display: none !important;
+}
+
+.measure-tip {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #e2e8f0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.measure-readout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.measure-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: #0b1220;
+  border: 1px solid #334155;
+}
+
+.measure-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.measure-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.measure-status {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 12px 10px;
+  border-radius: 14px;
+  border: 2px solid #475569;
+  background: #1e293b;
+}
+
+.measure-status[data-state='pass'] {
+  background: rgba(22, 101, 52, 0.55);
+  border-color: var(--ok);
+  color: #86efac;
+}
+
+.measure-status[data-state='fail'] {
+  background: rgba(127, 29, 29, 0.55);
+  border-color: var(--danger);
+  color: #fecaca;
+}
+
+.measure-status[data-state='idle'],
+.measure-status[data-state='frozen'] {
+  color: #fde047;
+  border-color: #a16207;
+  background: rgba(113, 63, 18, 0.4);
+}
+
+.measure-error {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.measure-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.measure-actions .secondary-btn {
+  flex: 1;
+}
+
+#btn-measure[aria-pressed='true'] {
+  border-color: #22d3ee;
+  color: #67e8f9;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+}
+
+#btn-freeze[aria-pressed='true'] {
+  border-color: #fde047;
+  color: #fde047;
+}
+
+.action-row {
+  flex-wrap: wrap;
+}
+
+.action-row .secondary-btn {
+  flex: 1 1 calc(33% - 8px);
+  min-width: 96px;
+}
