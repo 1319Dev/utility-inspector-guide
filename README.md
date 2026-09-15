@@ -1,6 +1,6 @@
 # Utility Inspector Guide
 
-Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, Station Locator (KMZ), Scope of Work search, daily progress report, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (keyless NEXRAD / optional RainViewer + Blitzortung lightning), emergency contacts, and material lookups.
+Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, bell hole checklist, Station Locator (KMZ live/pin), Scope of Work PDF search with page highlights, daily progress report, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (keyless NEXRAD / optional RainViewer + Blitzortung lightning), emergency contacts, and material lookups.
 
 > **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes.
 
@@ -8,8 +8,8 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 
 1. **Trench Slope** — live rear camera + OSHA Type A / B / C slope overlays; clinometer **Measure** (PASS / TOO STEEP)
 2. **Photo Stamp** — capture/pick photo; stamp datetime, GPS, station, pipe size/material, soil, inspector, note; download
-3. **Voice Note** — MediaRecorder + Web Speech transcript when available; recent notes in localStorage
-4. **Depth of Cover** — trench depth or grade-to-top vs min cover (gas 24″ / water 36″ / custom); **two-tap phone altitude** measure (ft + in, barometer/GPS estimate)
+3. **Bell Hole** — rear camera + approval checklist; stamp Pass / Needs work / Fail; export photo + text/JSON (field aid only)
+4. **Depth of Cover** — probe/tape entry (recommended); phone two-tap barometer/GPS estimate with honesty checks; trench depth vs min cover (gas 24″ / water 36″ / custom)
 5. **Separation Check** — measured distance vs required clearance presets (gas↔electric/water/sewer) or custom
 6. **811 / Locate** — APWA paint color legend + pre-dig checklist (ticket, marks verified, etc.)
 7. **Daily Trench Card** — soil, protective system, spoil ≥2 ft, egress ≤25 ft, competent person; export/share text
@@ -17,9 +17,9 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 9. **Confined Space Timer** — count-up with interval alarm or countdown; manual O₂/LEL/H₂S/CO fields
 10. **Emergency** — editable contacts + nearest ER note (on-device)
 11. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
-12. **Scope of Work** — upload PDF / TXT / MD / DOCX; on-device keyword & question search with ranked excerpts (IndexedDB)
+12. **Scope of Work** — upload PDF / TXT / MD / DOCX; search; tap a hit to **open the PDF page with highlights** (IndexedDB)
 13. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export
-14. **Station Locator** — upload Google Earth KMZ/KML (iOS-friendly picker; multi-layer KMZ / NetworkLink); GPS nearest **station** snap (stations vs poles / property lines / TWS); saves station for Photo Stamp / Daily Report
+14. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); saves station for Photo Stamp / Daily Report / Bell Hole
 15. **Weather Radar** — WeatherBug-style Leaflet map: free keyless NOAA NEXRAD via Iowa State Mesonet (default), optional RainViewer global, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
 
 ## Quick start
@@ -46,11 +46,11 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v12` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v13` (network-first HTML).
 
 ## Data privacy
 
-Settings, checklists, logs, and voice metadata are stored in **localStorage on the device**. Uploaded Scope of Work text and Station Locator KMZ parses are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
+Settings, checklists, and logs are stored in **localStorage on the device**. Uploaded Scope of Work text and Station Locator KMZ parses are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
 
 ## Stack
 

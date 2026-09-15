@@ -45,15 +45,15 @@
               <span class="hub-title">Photo Stamp</span>
               <span class="hub-desc">GPS · station · pipe data</span>
             </button>
-            <button type="button" class="hub-tile" data-nav="voice">
-              <span class="hub-icon" aria-hidden="true">🎙️</span>
-              <span class="hub-title">Voice Note</span>
-              <span class="hub-desc">Record findings hands-free</span>
+            <button type="button" class="hub-tile" data-nav="bellhole">
+              <span class="hub-icon" aria-hidden="true">🕳️</span>
+              <span class="hub-title">Bell Hole</span>
+              <span class="hub-desc">Camera · checklist approval</span>
             </button>
             <button type="button" class="hub-tile" data-nav="cover">
               <span class="hub-icon" aria-hidden="true">⬇️</span>
               <span class="hub-title">Depth of Cover</span>
-              <span class="hub-desc">Phone altitude or trench depth vs min</span>
+              <span class="hub-desc">Probe/tape or phone vs min</span>
             </button>
             <button type="button" class="hub-tile" data-nav="sep">
               <span class="hub-icon" aria-hidden="true">↔️</span>
@@ -93,12 +93,12 @@
             <button type="button" class="hub-tile" data-nav="scope">
               <span class="hub-icon" aria-hidden="true">📄</span>
               <span class="hub-title">Scope of Work</span>
-              <span class="hub-desc">Upload · search · Q&amp;A</span>
+              <span class="hub-desc">Search · open PDF page</span>
             </button>
             <button type="button" class="hub-tile" data-nav="station">
               <span class="hub-icon" aria-hidden="true">📍</span>
               <span class="hub-title">Station Locator</span>
-              <span class="hub-desc">KMZ · GPS nearest sta</span>
+              <span class="hub-desc">Live estimate · pin snap</span>
             </button>
             <button type="button" class="hub-tile" data-nav="weather">
               <span class="hub-icon" aria-hidden="true">🌧️</span>
@@ -205,17 +205,7 @@
         <div class="tool-body" id="photo-root"></div>
       </section>
 
-      <!-- VOICE NOTE -->
-      <section id="view-voice" class="view view-scroll" data-view="voice" hidden>
-        <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
-          <h1>Voice Note</h1>
-          <span class="top-spacer"></span>
-        </header>
-        <div class="tool-body" id="voice-root"></div>
-      </section>
-
-      <!-- DEPTH OF COVER -->
+<!-- DEPTH OF COVER -->
       <section id="view-cover" class="view view-scroll" data-view="cover" hidden>
         <header class="top-bar">
           <button type="button" class="back-btn" data-nav="home">←</button>
@@ -328,6 +318,17 @@
         <div class="tool-body" id="weather-root"></div>
       </section>
 
+
+      <!-- BELL HOLE -->
+      <section id="view-bellhole" class="view view-scroll" data-view="bellhole" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home">←</button>
+          <h1>Bell Hole</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="bellhole-root"></div>
+      </section>
+
       <!-- LOOKUPS -->
       <section id="view-lookups" class="view view-scroll" data-view="lookups" hidden>
         <header class="top-bar">
@@ -344,7 +345,7 @@
         <h2>About &amp; disclaimer</h2>
         <p>
           <strong>Utility Inspector Guide</strong> is a mobile field toolkit: OSHA trench slope overlays,
-          stamped photos, cover/separation checks, 811 checklist, trench card, pressure log, daily progress report, Station Locator (KMZ), Weather Radar (keyless NEXRAD + Blitzortung), Scope of Work search, and lookups.
+          stamped photos, bell hole checklist, cover/separation checks, 811 checklist, trench card, pressure log, daily progress report, Station Locator (KMZ), Weather Radar (keyless NEXRAD + Blitzortung), Scope of Work search (PDF page highlights), and lookups.
         </p>
         <p class="disclaimer">
           <strong>Educational / field reference only.</strong> Not engineering advice. Not a substitute for a

@@ -1,14 +1,14 @@
 /**
- * Scope of Work — upload PDF/TXT/MD/DOCX, search & Q&A excerpts (on-device)
+ * Scope of Work — upload PDF/TXT/MD/DOCX, search & open page with highlight
  */
 import { formatStamp } from '../store.js';
 
 const DB_NAME = 'uig-scope';
-const DB_VER = 1;
+const DB_VER = 2;
 const STORE = 'docs';
 const DOC_KEY = 'current';
-const MAX_FILE_BYTES = 12 * 1024 * 1024; // 12 MB upload
-const MAX_TEXT_CHARS = 1_500_000; // ~1.5M chars stored
+const MAX_FILE_BYTES = 12 * 1024 * 1024;
+const MAX_TEXT_CHARS = 1_500_000;
 const CHUNK_SIZE = 500;
 const CHUNK_OVERLAP = 80;
 const STOP = new Set(
@@ -18,8 +18,11 @@ const STOP = new Set(
 );
 
 let root = null;
-let doc = null; // { name, kind, uploadedAt, text, chunks }
+/** @type {{ name:string, kind:string, uploadedAt:string, text:string, chunks:any[], pdfBlob?:Blob|null }|null} */
+let doc = null;
 let pdfReady = null;
+let pdfDoc = null; // cached pdf.js document
+let lastTerms = [];
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -105,17 +108,29 @@ function looksLikeQuestion(q) {
   );
 }
 
-function chunkText(text) {
+function guessHeading(text) {
+  const first = text.split('\n')[0].trim();
+  if (
+    first.length <= 80 &&
+    (/^[A-Z0-9 .()\-/]{4,}$/.test(first) || /^\d+(\.\d+)*\s+\S/.test(first))
+  ) {
+    return first.slice(0, 80);
+  }
+  return '';
+}
+
+function chunkPageText(pageText, pageNum, startId) {
   const chunks = [];
-  const paras = text
+  let idx = startId;
+  const paras = pageText
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+  const source = paras.length ? paras : [pageText.trim()].filter(Boolean);
 
-  let idx = 0;
-  for (const para of paras) {
+  for (const para of source) {
     if (para.length <= CHUNK_SIZE) {
-      chunks.push({ id: idx++, text: para, heading: guessHeading(para) });
+      chunks.push({ id: idx++, text: para, heading: guessHeading(para), page: pageNum });
       continue;
     }
     let start = 0;
@@ -131,7 +146,7 @@ function chunkText(text) {
         if (lastBreak > CHUNK_SIZE * 0.4) end = start + lastBreak + 1;
       }
       const piece = para.slice(start, end).trim();
-      if (piece) chunks.push({ id: idx++, text: piece, heading: guessHeading(piece) });
+      if (piece) chunks.push({ id: idx++, text: piece, heading: guessHeading(piece), page: pageNum });
       if (end >= para.length) break;
       start = Math.max(end - CHUNK_OVERLAP, start + 1);
     }
@@ -139,15 +154,9 @@ function chunkText(text) {
   return chunks;
 }
 
-function guessHeading(text) {
-  const first = text.split('\n')[0].trim();
-  if (
-    first.length <= 80 &&
-    (/^[A-Z0-9 .()\-/]{4,}$/.test(first) || /^\d+(\.\d+)*\s+\S/.test(first))
-  ) {
-    return first.slice(0, 80);
-  }
-  return '';
+function chunkText(text) {
+  // Non-PDF: treat whole doc as page 1 sections
+  return chunkPageText(text, 1, 0);
 }
 
 async function loadPdfjs() {
@@ -165,14 +174,27 @@ async function loadPdfjs() {
 async function extractPdf(file) {
   const pdfjsLib = await loadPdfjs();
   const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
   const parts = [];
+  const chunks = [];
+  let nextId = 0;
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    parts.push(content.items.map((it) => ('str' in it ? it.str : '')).join(' '));
+    const pageText = normalizeText(
+      content.items.map((it) => ('str' in it ? it.str : '')).join(' ')
+    );
+    parts.push(pageText);
+    const pageChunks = chunkPageText(pageText || `(Page ${i} — little extractable text)`, i, nextId);
+    nextId += pageChunks.length;
+    chunks.push(...pageChunks);
   }
-  return normalizeText(parts.join('\n\n'));
+  return {
+    text: normalizeText(parts.join('\n\n')),
+    chunks,
+    pdfBlob: new Blob([buf], { type: 'application/pdf' }),
+    pageCount: pdf.numPages,
+  };
 }
 
 async function extractDocx(file) {
@@ -192,7 +214,8 @@ async function extractFile(file) {
   const type = file.type || '';
 
   if (lower.endsWith('.pdf') || type === 'application/pdf') {
-    return { text: await extractPdf(file), kind: 'pdf' };
+    const r = await extractPdf(file);
+    return { text: r.text, kind: 'pdf', chunks: r.chunks, pdfBlob: r.pdfBlob, pageCount: r.pageCount };
   }
   if (
     lower.endsWith('.docx') ||
@@ -274,6 +297,142 @@ function setStatus(msg, isError = false) {
   el.classList.toggle('error', !!isError);
 }
 
+function hideViewer() {
+  const viewer = root.querySelector('#sow-viewer');
+  if (viewer) viewer.hidden = true;
+}
+
+async function getPdfDocument() {
+  if (!doc?.pdfBlob) return null;
+  if (pdfDoc) return pdfDoc;
+  const pdfjsLib = await loadPdfjs();
+  const buf = await doc.pdfBlob.arrayBuffer();
+  pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+  return pdfDoc;
+}
+
+function itemMatchesTerms(str, terms) {
+  if (!str || !terms.length) return false;
+  const lower = str.toLowerCase();
+  return terms.some((t) => t && lower.includes(t));
+}
+
+/**
+ * Render a PDF page and overlay highlight rects for matching text items.
+ */
+async function openPdfPage(pageNum, terms, focusText) {
+  const viewer = root.querySelector('#sow-viewer');
+  const canvas = root.querySelector('#sow-pdf-canvas');
+  const hl = root.querySelector('#sow-pdf-hl');
+  const label = root.querySelector('#sow-viewer-label');
+  const textPane = root.querySelector('#sow-text-pane');
+  if (!viewer || !canvas) return;
+
+  viewer.hidden = false;
+  textPane.hidden = true;
+  canvas.hidden = false;
+  hl.hidden = false;
+  label.textContent = `PDF page ${pageNum}`;
+  viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const pdf = await getPdfDocument();
+    if (!pdf) throw new Error('PDF not available — re-upload the file.');
+    const page = await pdf.getPage(pageNum);
+    const base = page.getViewport({ scale: 1 });
+    const maxW = Math.min(root.clientWidth - 8, 900) || 360;
+    const scale = Math.min(2.2, maxW / base.width);
+    const viewport = page.getViewport({ scale });
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    canvas.style.width = `${viewport.width}px`;
+    canvas.style.height = `${viewport.height}px`;
+    hl.width = canvas.width;
+    hl.height = canvas.height;
+    hl.style.width = canvas.style.width;
+    hl.style.height = canvas.style.height;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const content = await page.getTextContent();
+    const hlCtx = hl.getContext('2d');
+    hlCtx.clearRect(0, 0, hl.width, hl.height);
+    hlCtx.fillStyle = 'rgba(249, 115, 22, 0.38)';
+
+    const termSet = terms && terms.length ? terms : tokenize(focusText || '');
+    let firstRect = null;
+
+    function paintItem(item) {
+      const [a, b, c, d, e, f] = item.transform;
+      const pt = viewport.convertToViewportPoint(e, f);
+      const fontH = Math.max(8, Math.hypot(c, d) * viewport.scale || Math.abs(d) * viewport.scale);
+      const w = Math.max(4, (item.width || 0) * viewport.scale);
+      const x = pt[0];
+      const y = pt[1] - fontH;
+      hlCtx.fillRect(x, y, w, fontH * 1.15);
+      if (!firstRect) firstRect = { x, y, w, h: fontH };
+    }
+
+    for (const item of content.items) {
+      if (!('str' in item) || !item.str?.trim()) continue;
+      if (itemMatchesTerms(item.str, termSet)) paintItem(item);
+    }
+
+    // Fallback: tokens from the excerpt itself
+    if (!firstRect && focusText) {
+      const words = tokenize(focusText).slice(0, 16);
+      for (const item of content.items) {
+        if (!('str' in item) || !item.str?.trim()) continue;
+        if (itemMatchesTerms(item.str, words)) paintItem(item);
+      }
+    }
+
+    if (firstRect) {
+      const wrap = root.querySelector('#sow-pdf-wrap');
+      if (wrap) {
+        wrap.scrollTop = Math.max(0, firstRect.y - 40);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    label.textContent = err.message || String(err);
+  }
+}
+
+
+function openTextHit(chunk, terms) {
+  const viewer = root.querySelector('#sow-viewer');
+  const canvas = root.querySelector('#sow-pdf-canvas');
+  const hl = root.querySelector('#sow-pdf-hl');
+  const label = root.querySelector('#sow-viewer-label');
+  const textPane = root.querySelector('#sow-text-pane');
+  if (!viewer) return;
+
+  viewer.hidden = false;
+  if (canvas) canvas.hidden = true;
+  if (hl) hl.hidden = true;
+  textPane.hidden = false;
+  label.textContent = chunk.page ? `Section · page ${chunk.page}` : 'Matching section';
+  textPane.innerHTML = `
+    ${chunk.heading ? `<h3>${escapeHtml(chunk.heading)}</h3>` : ''}
+    <p class="sow-excerpt sow-viewer-excerpt">${highlight(chunk.text, terms)}</p>
+  `;
+  viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const mark = textPane.querySelector('mark');
+  mark?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function openHit(chunk) {
+  lastTerms = lastTerms.length ? lastTerms : tokenize(root.querySelector('#sow-q')?.value || '');
+  if (doc?.kind === 'pdf' && doc.pdfBlob && chunk.page) {
+    await openPdfPage(chunk.page, lastTerms, chunk.text);
+  } else {
+    openTextHit(chunk, lastTerms);
+  }
+}
+
 function renderDocMeta() {
   const meta = root.querySelector('#sow-doc-meta');
   const searchCard = root.querySelector('#sow-search-card');
@@ -281,13 +440,20 @@ function renderDocMeta() {
     meta.innerHTML = '<p class="muted">No Scope of Work loaded yet.</p>';
     searchCard.hidden = true;
     root.querySelector('#sow-results').innerHTML = '';
+    hideViewer();
     return;
   }
   const kb = Math.round((doc.text?.length || 0) / 1024);
+  const pages =
+    doc.kind === 'pdf' && doc.pageCount
+      ? ` · ${doc.pageCount} pages`
+      : doc.pdfBlob
+        ? ' · PDF stored'
+        : '';
   meta.innerHTML = `
     <div class="list-item">
       <strong>${escapeHtml(doc.name)}</strong>
-      <span class="meta">${escapeHtml(doc.kind || 'file')} · ${doc.chunks.length} sections · ~${kb} KB text · ${escapeHtml(doc.uploadedAt || '')}</span>
+      <span class="meta">${escapeHtml(doc.kind || 'file')} · ${doc.chunks.length} sections · ~${kb} KB text${pages} · ${escapeHtml(doc.uploadedAt || '')}</span>
       <div class="btn-row">
         <button type="button" class="danger-btn" id="sow-clear">Remove</button>
       </div>
@@ -295,6 +461,7 @@ function renderDocMeta() {
   searchCard.hidden = false;
   meta.querySelector('#sow-clear')?.addEventListener('click', async () => {
     doc = null;
+    pdfDoc = null;
     await idbClear();
     renderDocMeta();
     setStatus('Document removed from this device.');
@@ -313,11 +480,13 @@ function renderResults(query) {
     return;
   }
   const { results, question, terms } = search(q);
+  lastTerms = terms;
   if (!results.length) {
     box.innerHTML = `<p class="muted">No matching excerpts for “${escapeHtml(q)}”. Try different keywords from the SOW.</p>`;
     return;
   }
   const heading = question ? 'Possible answers from your SOW' : `Matching excerpts (${results.length})`;
+  const canPdf = doc.kind === 'pdf' && !!doc.pdfBlob;
   box.innerHTML = `
     <h3>${heading}</h3>
     ${
@@ -325,18 +494,27 @@ function renderResults(query) {
         ? '<p class="disclaimer muted">Search matches only — not AI advice or a substitute for reading the contract / specs.</p>'
         : ''
     }
+    <p class="muted">Tap a result to open ${canPdf ? 'that PDF page with highlights' : 'the section with highlights'}.</p>
     <div class="list">
       ${results
         .map(
           (r) => `
-        <div class="list-item sow-hit">
+        <button type="button" class="list-item sow-hit" data-chunk-id="${r.id}">
           ${r.heading ? `<strong class="sow-heading">${escapeHtml(r.heading)}</strong>` : '<strong class="sow-heading">Excerpt</strong>'}
-          <span class="meta">Relevance ${r.score.toFixed(1)}</span>
+          <span class="meta">Relevance ${r.score.toFixed(1)}${r.page ? ` · page ${r.page}` : ''}</span>
           <p class="sow-excerpt">${highlight(r.text, terms || [])}</p>
-        </div>`
+        </button>`
         )
         .join('')}
     </div>`;
+
+  box.querySelectorAll('.sow-hit').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.chunkId);
+      const chunk = results.find((r) => r.id === id) || doc.chunks.find((c) => c.id === id);
+      if (chunk) openHit(chunk);
+    });
+  });
 }
 
 async function handleFile(file) {
@@ -347,8 +525,10 @@ async function handleFile(file) {
   }
   setStatus(`Reading ${file.name}…`);
   root.querySelector('#sow-upload-btn').disabled = true;
+  pdfDoc = null;
   try {
-    const { text, kind } = await extractFile(file);
+    const extracted = await extractFile(file);
+    const text = extracted.text;
     if (!text || text.length < 20) {
       throw new Error('Could not extract usable text from that file.');
     }
@@ -358,25 +538,41 @@ async function handleFile(file) {
       stored = stored.slice(0, MAX_TEXT_CHARS);
       note = ` Truncated to ~${Math.round(MAX_TEXT_CHARS / 1000)}k characters.`;
     }
-    const chunks = chunkText(stored);
+    const chunks = extracted.chunks?.length ? extracted.chunks : chunkText(stored);
+    // If truncated, still keep chunks that fit
+    const keepChunks =
+      stored.length < text.length
+        ? chunks.filter((c) => stored.includes(c.text.slice(0, Math.min(40, c.text.length))))
+        : chunks;
+
     doc = {
       name: file.name,
-      kind,
+      kind: extracted.kind,
       uploadedAt: formatStamp(),
       text: stored,
-      chunks,
+      chunks: keepChunks.length ? keepChunks : chunks,
+      pdfBlob: extracted.pdfBlob || null,
+      pageCount: extracted.pageCount || null,
     };
     try {
       await idbSet(doc);
     } catch (err) {
       console.warn('IndexedDB save failed', err);
-      setStatus('Loaded for this session only (storage full or blocked).' + note, true);
-      renderDocMeta();
-      root.querySelector('#sow-upload-btn').disabled = false;
-      return;
+      // retry without pdf blob if quota
+      try {
+        const slim = { ...doc, pdfBlob: null };
+        await idbSet(slim);
+        doc.pdfBlob = null;
+        note += ' PDF page view not cached (storage limit) — search excerpts still work.';
+      } catch {
+        setStatus('Loaded for this session only (storage full or blocked).' + note, true);
+        renderDocMeta();
+        root.querySelector('#sow-upload-btn').disabled = false;
+        return;
+      }
     }
     renderDocMeta();
-    setStatus(`Ready — ${chunks.length} searchable sections.${note}`);
+    setStatus(`Ready — ${doc.chunks.length} searchable sections.${note}`);
     const q = root.querySelector('#sow-q');
     if (q.value.trim()) renderResults(q.value);
     else root.querySelector('#sow-results').innerHTML = '<p class="muted">Ask a question or search keywords.</p>';
@@ -391,7 +587,7 @@ async function handleFile(file) {
 export function mountScope(el) {
   root = el;
   root.innerHTML = `
-    <p class="muted">Upload your project Scope of Work, then search or ask a question. Text stays on this device (IndexedDB). Educational field aid only.</p>
+    <p class="muted">Upload your project Scope of Work, then search or ask a question. Tap a hit to open the <strong>PDF page with highlights</strong> (or a highlighted text section). Stays on this device.</p>
     <div class="card">
       <h3>Upload Scope of Work</h3>
       <label class="sow-drop" id="sow-drop">
@@ -414,6 +610,17 @@ export function mountScope(el) {
         <button type="button" class="secondary-btn" id="sow-clear-q">Clear</button>
       </div>
       <div id="sow-results" class="sow-results"></div>
+    </div>
+    <div class="card sow-viewer" id="sow-viewer" hidden>
+      <div class="sow-viewer-bar">
+        <strong id="sow-viewer-label">Viewer</strong>
+        <button type="button" class="secondary-btn" id="sow-viewer-close">Close</button>
+      </div>
+      <div class="sow-pdf-wrap" id="sow-pdf-wrap">
+        <canvas id="sow-pdf-canvas"></canvas>
+        <canvas id="sow-pdf-hl" class="sow-pdf-hl"></canvas>
+      </div>
+      <div id="sow-text-pane" class="sow-text-pane" hidden></div>
     </div>
   `;
 
@@ -459,13 +666,20 @@ export function mountScope(el) {
   root.querySelector('#sow-clear-q').addEventListener('click', () => {
     root.querySelector('#sow-q').value = '';
     root.querySelector('#sow-results').innerHTML = '<p class="muted">Ask a question or search keywords.</p>';
+    hideViewer();
   });
+  root.querySelector('#sow-viewer-close').addEventListener('click', hideViewer);
 
   idbGet().then((saved) => {
     if (saved?.chunks?.length) {
       doc = saved;
+      pdfDoc = null;
       renderDocMeta();
-      setStatus('Loaded previous SOW from this device.');
+      const note =
+        saved.kind === 'pdf' && !saved.pdfBlob
+          ? ' Loaded text search (re-upload PDF to enable page highlights).'
+          : ' Loaded previous SOW from this device.';
+      setStatus(note.trim());
     } else {
       renderDocMeta();
     }

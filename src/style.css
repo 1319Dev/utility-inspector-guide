@@ -1296,3 +1296,105 @@ a.secondary-btn.dr-link-btn {
   margin-top: 0;
   line-height: normal;
 }
+
+
+/* Scope PDF viewer */
+.sow-viewer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sow-pdf-wrap {
+  position: relative;
+  max-height: 70vh;
+  overflow: auto;
+  border-radius: 12px;
+  background: #020617;
+  border: 1px solid #334155;
+}
+
+#sow-pdf-canvas,
+.sow-pdf-hl {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.sow-pdf-hl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+button.list-item.sow-hit {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+button.list-item.sow-hit:active {
+  border-color: var(--accent);
+}
+
+.sow-text-pane {
+  padding: 8px 0;
+}
+
+.sow-viewer-excerpt {
+  font-size: 1rem;
+}
+
+/* Bell hole */
+.bh-video {
+  width: 100%;
+  max-height: 42vh;
+  border-radius: 12px;
+  background: #020617;
+  margin: 8px 0;
+  object-fit: cover;
+}
+
+.bh-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bh-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #475569;
+  background: #0b1220;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.bh-check input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+#bh-verdicts button.active[data-verdict="pass"] {
+  border-color: var(--ok);
+  color: #86efac;
+}
+#bh-verdicts button.active[data-verdict="fail"] {
+  border-color: var(--danger);
+  color: #fca5a5;
+}
+#bh-verdicts button.active[data-verdict="needs"] {
+  border-color: var(--type-b);
+  color: #fde68a;
+}

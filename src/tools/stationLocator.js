@@ -15,7 +15,12 @@ let root = null;
 let mapData = null; // { name, uploadedAt, stations: [], features: [] }
 let watchId = null;
 let lastGps = null;
-let filterMode = 'stations'; // 'stations' | 'all'
+let filterMode = 'stations'; // 'stations' | 'all' | 'features'
+let stationMode = 'live'; // 'live' | 'pin'
+let smoothedChainFt = null; // EMA of estimated chainage (feet)
+const EMA_ALPHA = 0.35;
+const GPS_BUF = [];
+const GPS_BUF_MAX = 5;
 
 const FEATURE_HINT =
   /\b(power\s*pole|utility\s*pole|pole|property\s*line|prop\.?\s*line|tws|temp(?:orary)?\s*work(?:ing)?\s*space|workspace|work\s*space|row|right[\s-]?of[\s-]?way|easement|fence|gate|hydrant|valve|marker|sign|building|structure|tree|culvert|ditch|drain|wetland|bore|hdd|temp(?:orary)?\s*workspace)\b/i;
@@ -241,6 +246,135 @@ function fmtDist(m) {
   if (ft < 10) return `${ft.toFixed(1)} ft (${m.toFixed(1)} m)`;
   if (ft < 1000) return `${Math.round(ft)} ft (${m < 100 ? m.toFixed(1) : Math.round(m)} m)`;
   return `${(ft / 5280).toFixed(2)} mi (${(m / 1000).toFixed(2)} km)`;
+}
+
+function stationToFeet(name) {
+  const s = String(name || '').trim();
+  const plus = s.match(/(\d{1,4})\s*\+\s*(\d{1,3})/);
+  if (plus) return Number(plus[1]) * 100 + Number(plus[2]);
+  const bare = s.match(/^(\d{3,5})$/);
+  if (bare) return Number(bare[1]);
+  const m = s.match(STATION_HINT);
+  if (m) {
+    const token = m[1].replace(/\s+/g, '');
+    if (token.includes('+')) {
+      const [a, b] = token.split('+');
+      return Number(a) * 100 + Number(b);
+    }
+    const n = Number(token);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function formatStationFeet(ft) {
+  if (!Number.isFinite(ft)) return '—';
+  const rounded = Math.round(ft);
+  const maj = Math.floor(rounded / 100);
+  const min = ((rounded % 100) + 100) % 100;
+  return `${maj}+${String(min).padStart(2, '0')}`;
+}
+
+function stationsWithChainage() {
+  if (!mapData?.stations?.length) return [];
+  return mapData.stations
+    .map((s) => ({ ...s, chainFt: stationToFeet(s.name) }))
+    .filter((s) => Number.isFinite(s.chainFt))
+    .sort((a, b) => a.chainFt - b.chainFt);
+}
+
+/** Project GPS onto segment between two station pins; interpolate chainage. */
+function interpolateChainage(gps, sorted) {
+  if (!gps || sorted.length < 2) return null;
+  let best = null;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    const cosLat = Math.cos((gps.lat * Math.PI) / 180);
+    const toXY = (p) => ({
+      x: ((p.lon - gps.lon) * Math.PI) / 180 * EARTH_M * cosLat,
+      y: ((p.lat - gps.lat) * Math.PI) / 180 * EARTH_M,
+    });
+    const A = toXY(a);
+    const B = toXY(b);
+    const dx = B.x - A.x;
+    const dy = B.y - A.y;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 > 0 ? (-A.x * dx + -A.y * dy) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const px = A.x + t * dx;
+    const py = A.y + t * dy;
+    const distM = Math.hypot(px, py);
+    const chainFt = a.chainFt + t * (b.chainFt - a.chainFt);
+    if (!best || distM < best.distM) {
+      best = { chainFt, distM, from: a, to: b, t };
+    }
+  }
+  return best;
+}
+
+function medianChain(values) {
+  const a = values.filter((v) => Number.isFinite(v)).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const mid = Math.floor(a.length / 2);
+  return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+}
+
+function updateSmoothedChain(rawFt) {
+  if (!Number.isFinite(rawFt)) return smoothedChainFt;
+  GPS_BUF.push(rawFt);
+  while (GPS_BUF.length > GPS_BUF_MAX) GPS_BUF.shift();
+  const med = medianChain(GPS_BUF);
+  if (smoothedChainFt == null) smoothedChainFt = med;
+  else smoothedChainFt = EMA_ALPHA * med + (1 - EMA_ALPHA) * smoothedChainFt;
+  return smoothedChainFt;
+}
+
+function resetStationSmooth() {
+  smoothedChainFt = null;
+  GPS_BUF.length = 0;
+}
+
+function activeStationLabel(gps) {
+  const ranked = rankStations(gps);
+  const nearest = ranked[0] || null;
+  if (stationMode === 'pin') {
+    return {
+      label: nearest?.name || null,
+      mode: 'pin',
+      nearest,
+      liveFt: null,
+      detail: nearest ? `Nearest pin · ${fmtDist(nearest.distM)}` : 'No station pin',
+    };
+  }
+  const sorted = stationsWithChainage();
+  if (sorted.length >= 2 && gps) {
+    const interp = interpolateChainage(gps, sorted);
+    if (interp) {
+      const smooth = updateSmoothedChain(interp.chainFt);
+      const label = formatStationFeet(smooth);
+      return {
+        label,
+        mode: 'live',
+        nearest,
+        liveFt: smooth,
+        detail: `Live estimate · ${fmtDist(interp.distM)} off alignment · between ${interp.from.name}–${interp.to.name}`,
+      };
+    }
+  }
+  // Fallback: nearest pin if we can't interpolate
+  if (nearest) {
+    const ft = stationToFeet(nearest.name);
+    if (Number.isFinite(ft)) updateSmoothedChain(ft);
+    return {
+      label: nearest.name,
+      mode: 'live-fallback',
+      nearest,
+      liveFt: smoothedChainFt,
+      detail: `Nearest pin (need ≥2 chainage pins for foot estimate) · ${fmtDist(nearest.distM)}`,
+    };
+  }
+  return { label: null, mode: 'live', nearest: null, liveFt: null, detail: 'No stations' };
 }
 
 /** Distance from point to polyline (meters) using local equirectangular segments */
@@ -777,6 +911,7 @@ function renderMapMeta() {
   live.hidden = false;
   meta.querySelector('#sl-clear')?.addEventListener('click', async () => {
     mapData = null;
+    resetStationSmooth();
     await idbClear();
     renderMapMeta();
     updateReadout();
@@ -816,9 +951,10 @@ function updateReadout() {
 
   const rankedSta = rankStations(lastGps);
   const rankedFeat = rankFeatures(lastGps);
-  const nearest = rankedSta[0];
+  const active = activeStationLabel(lastGps);
+  const nearest = active.nearest || rankedSta[0];
 
-  if (!nearest) {
+  if (!active.label) {
     nearestBox.innerHTML = `<div class="big">No stations</div><div class="muted">${mapData.features.length} other features in file — none matched station patterns (12+00, Sta 1200, …)</div>`;
     nearestBox.className = 'result-box fail';
     if (useBtn) {
@@ -826,15 +962,27 @@ function updateReadout() {
       useBtn.dataset.station = '';
     }
   } else {
+    const modeLabel = stationMode === 'pin' ? 'Pin only' : 'Live estimate';
+    const compassBit =
+      nearest && Number.isFinite(nearest.bearing)
+        ? ` · ${escapeHtml(nearest.compass)} (${Math.round(nearest.bearing)}°)`
+        : '';
+    const pinBit =
+      stationMode === 'live' && nearest
+        ? `<div class="muted">Nearest pin: ${escapeHtml(nearest.name)} · ${escapeHtml(fmtDist(nearest.distM))}${compassBit}</div>`
+        : nearest
+          ? `<div class="sl-dist">${escapeHtml(fmtDist(nearest.distM))}${compassBit}</div>`
+          : '';
     nearestBox.innerHTML = `
-      <div class="muted">Nearest station</div>
-      <div class="big">${escapeHtml(nearest.name)}</div>
-      <div class="sl-dist">${escapeHtml(fmtDist(nearest.distM))} · ${escapeHtml(nearest.compass)} (${Math.round(nearest.bearing)}°)</div>
-      <div class="muted">±${Math.round(lastGps.accuracy || 0)} m GPS accuracy</div>`;
+      <div class="muted">${modeLabel}</div>
+      <div class="big">${escapeHtml(active.label)}</div>
+      <div class="muted">${escapeHtml(active.detail || '')}</div>
+      ${pinBit}
+      <div class="muted">±${Math.round(lastGps.accuracy || 0)} m GPS · phone GPS is ~10–30 ft outdoors — foot-level is approximate, not survey grade</div>`;
     nearestBox.className = 'result-box pass';
     if (useBtn) {
       useBtn.disabled = false;
-      useBtn.dataset.station = nearest.name;
+      useBtn.dataset.station = active.label;
     }
   }
 
@@ -931,6 +1079,7 @@ async function handleFile(file) {
       features: parsed.features,
       placemarkCount: parsed.placemarkCount,
     };
+    resetStationSmooth();
     try {
       await idbSet(mapData);
     } catch (err) {
@@ -974,7 +1123,7 @@ export function mountStation(el) {
   const s = loadSettings();
   filterMode = 'stations';
   el.innerHTML = `
-    <p class="muted">Upload a Google Earth <strong>KMZ/KML</strong> with station pins (e.g. every 100 ft). Your phone GPS snaps to the nearest <em>station</em>; poles, property lines, TWS, etc. show as nearby features only.</p>
+    <p class="muted">Upload a Google Earth <strong>KMZ/KML</strong> with station pins (e.g. every 100 ft). Choose <strong>Live estimate</strong> (smoothed foot station while walking) or <strong>Pin only</strong> (nearest 100-ft placemark). Poles, property lines, TWS show as nearby features.</p>
     <div class="card">
       <h3>Upload map</h3>
       <div class="sow-drop" id="sl-drop" role="button" tabindex="0">
@@ -990,6 +1139,14 @@ export function mountStation(el) {
     <div class="card" id="sl-live" hidden>
       <h3>Live location</h3>
       <p class="muted" id="sl-gps">GPS: …</p>
+      <div class="field">
+        <label>Station mode</label>
+        <div class="segment" id="sl-station-mode" role="group" aria-label="Station mode">
+          <button type="button" class="active" data-sta-mode="live">Live estimate</button>
+          <button type="button" data-sta-mode="pin">Pin only</button>
+        </div>
+      </div>
+      <p class="muted" id="sl-mode-hint">Live estimate interpolates between 100-ft pins (e.g. 26+06) with smoothing. Pin only snaps to nearest station placemark.</p>
       <div class="segment" id="sl-filter" role="group" aria-label="Filter">
         <button type="button" class="active" data-filter="stations">Stations</button>
         <button type="button" data-filter="all">All</button>
@@ -1050,6 +1207,23 @@ export function mountStation(el) {
     if (!btn) return;
     filterMode = btn.dataset.filter;
     el.querySelectorAll('#sl-filter button').forEach((b) => b.classList.toggle('active', b === btn));
+    updateReadout();
+  });
+
+  stationMode = 'live';
+  el.querySelector('#sl-station-mode').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-sta-mode]');
+    if (!btn) return;
+    stationMode = btn.dataset.staMode;
+    el.querySelectorAll('#sl-station-mode button').forEach((b) => b.classList.toggle('active', b === btn));
+    const hint = el.querySelector('#sl-mode-hint');
+    if (hint) {
+      hint.textContent =
+        stationMode === 'pin'
+          ? 'Pin only — snaps to nearest 100-ft station placemark (no foot interpolation).'
+          : 'Live estimate interpolates between 100-ft pins (e.g. 26+06) with smoothing. Phone GPS ~10–30 ft — approximate only.';
+    }
+    if (stationMode === 'live') resetStationSmooth();
     updateReadout();
   });
 

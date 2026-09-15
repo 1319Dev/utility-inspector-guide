@@ -3,7 +3,6 @@
  */
 import { enterSlope, leaveSlope, slopeHelp } from './tools/slope.js';
 import { mountPhoto } from './tools/photoStamp.js';
-import { mountVoice } from './tools/voiceNote.js';
 import { mountCover } from './tools/depthCover.js';
 import { mountSep } from './tools/separation.js';
 import { mountLocate } from './tools/locate811.js';
@@ -16,12 +15,12 @@ import { mountScope } from './tools/scopeSearch.js';
 import { mountDaily } from './tools/dailyReport.js';
 import { mountStation, leaveStation } from './tools/stationLocator.js';
 import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
+import { mountBellHole, leaveBellHole } from './tools/bellHole.js';
 
 const VIEWS = [
   'home',
   'slope',
   'photo',
-  'voice',
   'cover',
   'sep',
   'locate',
@@ -34,6 +33,7 @@ const VIEWS = [
   'daily',
   'station',
   'weather',
+  'bellhole',
 ];
 
 const mounted = new Set();
@@ -50,6 +50,9 @@ function showView(name) {
   }
   if (current === 'weather' && name !== 'weather') {
     leaveWeather();
+  }
+  if (current === 'bellhole' && name !== 'bellhole') {
+    leaveBellHole();
   }
 
   document.querySelectorAll('.view').forEach((el) => {
@@ -79,7 +82,6 @@ function ensureMounted(name) {
   if (mounted.has(name)) return;
   const map = {
     photo: ['photo-root', mountPhoto],
-    voice: ['voice-root', mountVoice],
     cover: ['cover-root', mountCover],
     sep: ['sep-root', mountSep],
     locate: ['locate-root', mountLocate],
@@ -92,6 +94,7 @@ function ensureMounted(name) {
     daily: ['daily-root', mountDaily],
     station: ['station-root', mountStation],
     weather: ['weather-root', mountWeather],
+    bellhole: ['bellhole-root', mountBellHole],
   };
   const entry = map[name];
   if (!entry) return;
