@@ -1,8 +1,8 @@
 {
-  "name": "trench-slope-guide",
-  "version": "1.0.0",
+  "name": "utility-inspector-guide",
+  "version": "2.0.0",
   "private": true,
-  "description": "Mobile PWA: live camera + OSHA Type A/B/C trench slope overlays",
+  "description": "Mobile PWA field toolkit for utility inspectors: trench slope, photo stamp, depth of cover, separation, 811 checklist, and more",
   "type": "module",
   "scripts": {
     "dev": "vite",

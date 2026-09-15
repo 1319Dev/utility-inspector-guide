@@ -1,7 +1,7 @@
 {
-  "name": "Trench Slope Guide",
-  "short_name": "Trench Slope",
-  "description": "Live camera overlay of OSHA Type A/B/C trench excavation slopes. Educational use only.",
+  "name": "Utility Inspector Guide",
+  "short_name": "Util Inspect",
+  "description": "Field toolkit for utility inspectors: trench slope, photo stamp, depth of cover, separation, 811, trench card, and more. Educational use only.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

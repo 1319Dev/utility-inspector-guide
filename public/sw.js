@@ -1,5 +1,5 @@
-/* Trench Slope Guide — offline cache */
-const CACHE = 'trench-slope-guide-v3';
+/* Utility Inspector Guide — offline cache */
+const CACHE = 'utility-inspector-guide-v4';
 const PRECACHE = [
   './',
   './index.html',
@@ -35,7 +35,6 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('/') ||
     url.pathname.endsWith('.html');
 
-  // Network-first for HTML so phones pick up new UI; cache-first for other assets offline
   if (isHTML) {
     event.respondWith(
       fetch(request)

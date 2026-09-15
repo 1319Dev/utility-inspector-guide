@@ -1,19 +1,24 @@
-# Trench Slope Guide
+# Utility Inspector Guide
 
-Mobile-first **progressive web app** that puts your phone’s rear camera behind translucent **OSHA Type A / B / C** trench slope guides so you can visually align a trench face in the field.
+Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, emergency contacts, and material lookups.
 
-> **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program.
+> **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes.
 
-## Features
+## Tools
 
-- Live rear camera (`getUserMedia` · `facingMode: environment`)
-- Soil picker: **Type A** (¾:1 ≈53°), **Type B** (1:1 ≈45°), **Type C** (1½:1 ≈34°)
-- Translucent slope overlays with H:V labels and angle callouts
-- Drag yellow baseline / anchor; pinch or use **Scale** to fit the trench
-- **Both walls** or single wall (**Flip side**)
-- **Measure** clinometer mode: hold the phone on the soil face and compare measured angle vs OSHA allowed max for the selected soil type (PASS / TOO STEEP), with Freeze
-- Installable PWA with offline cache after first visit
-- Large, high-contrast, glove-friendly controls
+1. **Trench Slope** — live rear camera + OSHA Type A / B / C slope overlays; clinometer **Measure** (PASS / TOO STEEP)
+2. **Photo Stamp** — capture/pick photo; stamp datetime, GPS, station, pipe size/material, soil, inspector, note; download
+3. **Voice Note** — MediaRecorder + Web Speech transcript when available; recent notes in localStorage
+4. **Depth of Cover** — trench depth or grade-to-top vs min cover (gas 24″ / water 36″ / custom)
+5. **Separation Check** — measured distance vs required clearance presets (gas↔electric/water/sewer) or custom
+6. **811 / Locate** — APWA paint color legend + pre-dig checklist (ticket, marks verified, etc.)
+7. **Daily Trench Card** — soil, protective system, spoil ≥2 ft, egress ≤25 ft, competent person; export/share text
+8. **Pressure / Soap Test Log** — pressure, hold, start/end, pass/fail; export CSV/JSON
+9. **Confined Space Timer** — count-up with interval alarm or countdown; manual O₂/LEL/H₂S/CO fields
+10. **Emergency** — editable contacts + nearest ER note (on-device)
+11. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
+
+Offline maps / as-builts are deferred (future).
 
 ## Quick start
 
@@ -22,50 +27,32 @@ npm install
 npm run dev
 ```
 
-Open the printed URL on your **phone** (same Wi‑Fi), or use a tunnel. Camera requires **HTTPS** (or `localhost`).
+Open the printed URL on your **phone** (same Wi‑Fi), or use a tunnel. Camera / motion require **HTTPS** (or `localhost`).
 
 ```bash
 npm run build    # output in dist/
 npm run preview  # serve the production build
 ```
 
-## Deploy (phone-ready URL)
+## Deploy
 
 Any static host works. After `npm run build`, publish the `dist/` folder.
 
 ### GitHub Pages
 
-1. Push this repo to GitHub.
-2. Settings → Pages → Deploy from a branch, folder `/ (root)` **or** use a Pages action that publishes `dist/`.
-3. If the site is at `https://<user>.github.io/trench-slope-guide/`, the project already uses relative asset paths (`base: './'` in Vite).
-4. On your phone: open the Pages URL → **Start camera** → optionally **Add to Home Screen**.
+Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
-### Other hosts
+`https://garrett1319.github.io/trench-slope-guide/`
 
-Netlify, Cloudflare Pages, Vercel, S3, etc.: set the publish directory to `dist`.
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v4` (network-first HTML).
 
-## Field use
+## Data privacy
 
-1. Allow camera permission.
-2. Select soil type (A / B / C).
-3. Drag the yellow baseline to the trench toe (or crest).
-4. Scale / pinch so the colored slope line matches the expected OSHA face.
-5. Compare the real wall to the guide — steeper than the guide may need more cut or another protective system.
-6. Optional: tap **Measure**, allow motion access, hold the phone flat against the face (long edge up the slope). Compare **Measured** to **Allowed max**; freeze a reading if needed.
-
-## OSHA slopes used
-
-| Soil   | Max slope (H:V) | ≈ angle from horizontal |
-|--------|-----------------|-------------------------|
-| Type A | ¾ : 1           | ≈ 53°                   |
-| Type B | 1 : 1           | ≈ 45°                   |
-| Type C | 1½ : 1          | ≈ 34°                   |
-
-Angles are `atan(1 / H)` for H:V = H:1. Confirm against current OSHA excavation standards for your situation.
+Settings, checklists, logs, and voice metadata are stored in **localStorage on the device**. Nothing is uploaded by the app.
 
 ## Stack
 
-Vite + vanilla HTML / CSS / JS. No framework. Service worker + web manifest in `public/`.
+Vite + vanilla HTML / CSS / JS modules. Service worker + web manifest in `public/`.
 
 ## License
 
