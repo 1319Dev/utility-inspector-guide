@@ -45,7 +45,7 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v15` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v16` (network-first HTML).
 
 ## Data privacy
 

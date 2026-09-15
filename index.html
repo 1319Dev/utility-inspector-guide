@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
     />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#0b1220" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
@@ -23,89 +23,153 @@
     <div id="app">
       <!-- HOME HUB -->
       <section id="view-home" class="view view-scroll" data-view="home">
-        <header class="top-bar">
+        <header class="top-bar home-bar">
           <div class="brand">
-            <h1>Utility Inspector Guide</h1>
-            <p class="tagline">Field toolkit · educational reference</p>
+            <p class="brand-kicker">Field toolkit</p>
+            <h1>Utility Inspector</h1>
+            <p class="tagline">On-device · educational reference</p>
           </div>
           <button type="button" id="btn-info" class="icon-btn" aria-label="Disclaimer and help">?</button>
         </header>
         <div class="hub-body">
-          <p class="disclaimer-banner">
-            Field reference only — not engineering advice. Follow your employer’s program and a competent person.
+          <p class="disclaimer-banner" role="note">
+            <span class="disclaimer-icon" aria-hidden="true">⚠</span>
+            <span>Field reference only — not engineering advice. Follow your employer’s program and a competent person.</span>
           </p>
-          <div class="hub-grid" role="navigation" aria-label="Field tools">
-            <button type="button" class="hub-tile" data-nav="slope">
-              <span class="hub-icon" aria-hidden="true">📐</span>
-              <span class="hub-title">Trench Slope</span>
-              <span class="hub-desc">Camera overlay + Measure</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="photo">
-              <span class="hub-icon" aria-hidden="true">📷</span>
-              <span class="hub-title">Photo Stamp</span>
-              <span class="hub-desc">GPS · station · pipe data</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="bellhole">
-              <span class="hub-icon" aria-hidden="true">🕳️</span>
-              <span class="hub-title">Bell Hole</span>
-              <span class="hub-desc">Camera · checklist approval</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="cover">
-              <span class="hub-icon" aria-hidden="true">⬇️</span>
-              <span class="hub-title">Depth of Cover</span>
-              <span class="hub-desc">Probe/tape or phone vs min</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="locate">
-              <span class="hub-icon" aria-hidden="true">🎨</span>
-              <span class="hub-title">811 / Locate</span>
-              <span class="hub-desc">APWA colors + checklist</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="trench-card">
-              <span class="hub-icon" aria-hidden="true">📋</span>
-              <span class="hub-title">Daily Trench Card</span>
-              <span class="hub-desc">Soil · protect · egress</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="pressure">
-              <span class="hub-icon" aria-hidden="true">⏱️</span>
-              <span class="hub-title">Pressure / Soap</span>
-              <span class="hub-desc">Test log + export</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="confined">
-              <span class="hub-icon" aria-hidden="true">⏳</span>
-              <span class="hub-title">Confined Timer</span>
-              <span class="hub-desc">Atmosphere + interval alarm</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="emergency">
-              <span class="hub-icon" aria-hidden="true">🚨</span>
-              <span class="hub-title">Emergency</span>
-              <span class="hub-desc">Contacts · nearest ER</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="daily">
-              <span class="hub-icon" aria-hidden="true">📝</span>
-              <span class="hub-title">Daily Report</span>
-              <span class="hub-desc">Progress · footage · hours</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="scope">
-              <span class="hub-icon" aria-hidden="true">📄</span>
-              <span class="hub-title">Scope of Work</span>
-              <span class="hub-desc">Preview · search · highlight</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="station">
-              <span class="hub-icon" aria-hidden="true">📍</span>
-              <span class="hub-title">Station Locator</span>
-              <span class="hub-desc">Live estimate · pin snap</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="weather">
-              <span class="hub-icon" aria-hidden="true">🌧️</span>
-              <span class="hub-title">Weather Radar</span>
-              <span class="hub-desc">Free NEXRAD · lightning</span>
-            </button>
-            <button type="button" class="hub-tile" data-nav="lookups">
-              <span class="hub-icon" aria-hidden="true">📘</span>
-              <span class="hub-title">Lookups</span>
-              <span class="hub-desc">Pipe size · material ID</span>
-            </button>
-          </div>
+
+          <section class="hub-section" aria-labelledby="hub-inspect">
+            <div class="hub-section-head">
+              <h2 id="hub-inspect" class="hub-section-title">Inspect</h2>
+              <p class="hub-section-sub">Measure · verify · locate</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Inspect tools">
+              <button type="button" class="hub-tile" data-nav="slope" data-tone="amber">
+                <span class="hub-icon" aria-hidden="true">📐</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Trench Slope</span>
+                  <span class="hub-desc">Camera overlay + Measure</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="bellhole" data-tone="violet">
+                <span class="hub-icon" aria-hidden="true">🕳️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Bell Hole</span>
+                  <span class="hub-desc">Camera · checklist approval</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="cover" data-tone="sky">
+                <span class="hub-icon" aria-hidden="true">⬇️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Depth of Cover</span>
+                  <span class="hub-desc">Probe/tape or phone vs min</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="station" data-tone="lime">
+                <span class="hub-icon" aria-hidden="true">📍</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Station Locator</span>
+                  <span class="hub-desc">Live estimate · pin snap</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-docs">
+            <div class="hub-section-head">
+              <h2 id="hub-docs" class="hub-section-title">Capture &amp; report</h2>
+              <p class="hub-section-sub">Photos · paperwork · scope</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Capture and report tools">
+              <button type="button" class="hub-tile" data-nav="photo" data-tone="cyan">
+                <span class="hub-icon" aria-hidden="true">📷</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Photo Stamp</span>
+                  <span class="hub-desc">GPS · station · pipe data</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="daily" data-tone="orange">
+                <span class="hub-icon" aria-hidden="true">📝</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Daily Report</span>
+                  <span class="hub-desc">Progress · footage · hours</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="scope" data-tone="slate">
+                <span class="hub-icon" aria-hidden="true">📄</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Scope of Work</span>
+                  <span class="hub-desc">Preview · search · highlight</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="pressure" data-tone="teal">
+                <span class="hub-icon" aria-hidden="true">⏱️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Pressure / Soap</span>
+                  <span class="hub-desc">Test log + export</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-safety">
+            <div class="hub-section-head">
+              <h2 id="hub-safety" class="hub-section-title">Safety</h2>
+              <p class="hub-section-sub">Locate · trench · weather · SOS</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Safety tools">
+              <button type="button" class="hub-tile" data-nav="locate" data-tone="rose">
+                <span class="hub-icon" aria-hidden="true">🎨</span>
+                <span class="hub-copy">
+                  <span class="hub-title">811 / Locate</span>
+                  <span class="hub-desc">APWA colors + checklist</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="trench-card" data-tone="amber">
+                <span class="hub-icon" aria-hidden="true">📋</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Daily Trench Card</span>
+                  <span class="hub-desc">Soil · protect · egress</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="confined" data-tone="violet">
+                <span class="hub-icon" aria-hidden="true">⏳</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Confined Timer</span>
+                  <span class="hub-desc">Atmosphere + interval alarm</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="weather" data-tone="sky">
+                <span class="hub-icon" aria-hidden="true">🌧️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Weather Radar</span>
+                  <span class="hub-desc">Free NEXRAD · lightning</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile hub-tile-wide" data-nav="emergency" data-tone="danger">
+                <span class="hub-icon" aria-hidden="true">🚨</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Emergency</span>
+                  <span class="hub-desc">Contacts · nearest ER</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-ref">
+            <div class="hub-section-head">
+              <h2 id="hub-ref" class="hub-section-title">Reference</h2>
+              <p class="hub-section-sub">Tables · material ID</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Reference tools">
+              <button type="button" class="hub-tile hub-tile-wide" data-nav="lookups" data-tone="slate">
+                <span class="hub-icon" aria-hidden="true">📘</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Lookups</span>
+                  <span class="hub-desc">Pipe size · material ID cheat sheet</span>
+                </span>
+              </button>
+            </div>
+          </section>
         </div>
       </section>
 
