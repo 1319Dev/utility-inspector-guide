@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
-      content="Utility Inspector Guide — field toolkit: trench slope, photo stamp, depth of cover, separation, 811 checklist, and more. Educational use only."
+      content="Utility Inspector Guide — field toolkit: trench slope, photo stamp, Scope of Work search, depth of cover, separation, 811 checklist, and more. Educational use only."
     />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" href="./favicon.png" />
@@ -84,6 +84,16 @@
               <span class="hub-icon" aria-hidden="true">🚨</span>
               <span class="hub-title">Emergency</span>
               <span class="hub-desc">Contacts · nearest ER</span>
+            </button>
+            <button type="button" class="hub-tile" data-nav="daily">
+              <span class="hub-icon" aria-hidden="true">📝</span>
+              <span class="hub-title">Daily Report</span>
+              <span class="hub-desc">Progress · footage · hours</span>
+            </button>
+            <button type="button" class="hub-tile" data-nav="scope">
+              <span class="hub-icon" aria-hidden="true">📄</span>
+              <span class="hub-title">Scope of Work</span>
+              <span class="hub-desc">Upload · search · Q&amp;A</span>
             </button>
             <button type="button" class="hub-tile" data-nav="lookups">
               <span class="hub-icon" aria-hidden="true">📘</span>
@@ -265,6 +275,28 @@
         <div class="tool-body" id="emergency-root"></div>
       </section>
 
+
+
+      <!-- DAILY PROGRESS REPORT -->
+      <section id="view-daily" class="view view-scroll" data-view="daily" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home">←</button>
+          <h1>Daily Report</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="daily-root"></div>
+      </section>
+
+      <!-- SCOPE OF WORK -->
+      <section id="view-scope" class="view view-scroll" data-view="scope" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home">←</button>
+          <h1>Scope of Work</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="scope-root"></div>
+      </section>
+
       <!-- LOOKUPS -->
       <section id="view-lookups" class="view view-scroll" data-view="lookups" hidden>
         <header class="top-bar">
@@ -281,7 +313,7 @@
         <h2>About &amp; disclaimer</h2>
         <p>
           <strong>Utility Inspector Guide</strong> is a mobile field toolkit: OSHA trench slope overlays,
-          stamped photos, cover/separation checks, 811 checklist, trench card, pressure log, and lookups.
+          stamped photos, cover/separation checks, 811 checklist, trench card, pressure log, daily progress report, Scope of Work search, and lookups.
         </p>
         <p class="disclaimer">
           <strong>Educational / field reference only.</strong> Not engineering advice. Not a substitute for a

@@ -852,3 +852,118 @@ table.data th {
   border-color: var(--accent);
   color: var(--accent-2);
 }
+
+/* Scope of Work search */
+.sow-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 110px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px dashed #475569;
+  background: #0b1220;
+  text-align: center;
+  cursor: pointer;
+}
+
+.sow-drop.drag {
+  border-color: var(--accent);
+  background: #1a2336;
+}
+
+.sow-drop-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.sow-results {
+  margin-top: 14px;
+}
+
+.sow-hit .sow-heading {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sow-excerpt {
+  margin: 8px 0 0;
+  line-height: 1.45;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sow-excerpt mark {
+  background: rgba(249, 115, 22, 0.35);
+  color: var(--accent-2);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+#sow-status.error {
+  color: var(--danger);
+}
+
+#sow-q {
+  font-size: 1.05rem;
+  min-height: 52px;
+}
+
+
+/* Daily Progress Report */
+.dr-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dr-phase {
+  border: 1px solid #475569;
+  border-radius: 14px;
+  background: #0b1220;
+  overflow: hidden;
+}
+
+.dr-phase summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.dr-phase summary::-webkit-details-marker {
+  display: none;
+}
+
+.dr-phase summary::after {
+  content: '▸';
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.dr-phase[open] summary::after {
+  content: '▾';
+  color: var(--accent);
+}
+
+.dr-phase-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid #334155;
+}
+
+.dr-link-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  line-height: 48px;
+  margin-top: 4px;
+}

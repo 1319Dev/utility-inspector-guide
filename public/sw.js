@@ -1,5 +1,5 @@
 /* Utility Inspector Guide — offline cache */
-const CACHE = 'utility-inspector-guide-v4';
+const CACHE = 'utility-inspector-guide-v6';
 const PRECACHE = [
   './',
   './index.html',

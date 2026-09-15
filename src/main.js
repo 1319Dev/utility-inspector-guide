@@ -12,6 +12,8 @@ import { mountPressure } from './tools/pressureLog.js';
 import { mountConfined } from './tools/confinedTimer.js';
 import { mountEmergency } from './tools/emergency.js';
 import { mountLookups } from './tools/lookups.js';
+import { mountScope } from './tools/scopeSearch.js';
+import { mountDaily } from './tools/dailyReport.js';
 
 const VIEWS = [
   'home',
@@ -26,6 +28,8 @@ const VIEWS = [
   'confined',
   'emergency',
   'lookups',
+  'scope',
+  'daily',
 ];
 
 const mounted = new Set();
@@ -71,6 +75,8 @@ function ensureMounted(name) {
     confined: ['confined-root', mountConfined],
     emergency: ['emergency-root', mountEmergency],
     lookups: ['lookups-root', mountLookups],
+    scope: ['scope-root', mountScope],
+    daily: ['daily-root', mountDaily],
   };
   const entry = map[name];
   if (!entry) return;

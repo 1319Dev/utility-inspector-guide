@@ -1,6 +1,6 @@
 # Utility Inspector Guide
 
-Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, emergency contacts, and material lookups.
+Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, Scope of Work search, daily progress report, cover/separation checks, 811 checklist, daily trench card, pressure log, confined-space timer, emergency contacts, and material lookups.
 
 > **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes.
 
@@ -17,6 +17,8 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 9. **Confined Space Timer** — count-up with interval alarm or countdown; manual O₂/LEL/H₂S/CO fields
 10. **Emergency** — editable contacts + nearest ER note (on-device)
 11. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
+12. **Scope of Work** — upload PDF / TXT / MD / DOCX; on-device keyword & question search with ranked excerpts (IndexedDB)
+13. **Daily Report** — digital Daily Progress Report (phases, footage, hours); export HTML/text; blank company PDF template
 
 Offline maps / as-builts are deferred (future).
 
@@ -44,11 +46,11 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v4` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v6` (network-first HTML).
 
 ## Data privacy
 
-Settings, checklists, logs, and voice metadata are stored in **localStorage on the device**. Nothing is uploaded by the app.
+Settings, checklists, logs, and voice metadata are stored in **localStorage on the device**. Uploaded Scope of Work text is stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
 
 ## Stack
 
