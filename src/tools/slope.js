@@ -77,6 +77,9 @@ function els() {
     alignStrip: document.getElementById('align-strip'),
     guideTip: document.getElementById('slope-guide-tip'),
     btnGuideGotIt: document.getElementById('btn-slope-guide-gotit'),
+    btnShowGuide: document.getElementById('btn-show-guide'),
+    lineSwatchSlope: document.getElementById('line-swatch-slope'),
+    lineSwatchCrest: document.getElementById('line-swatch-crest'),
     btnMeasure: document.getElementById('btn-measure'),
     measurePanel: document.getElementById('measure-panel'),
     measAngleEl: document.getElementById('meas-angle'),
@@ -98,6 +101,14 @@ function updateMeta() {
   const approx = Math.round(angleFromHorizontal(s.hv));
   e.metaTitle.textContent = s.title;
   e.metaDetail.textContent = `H:V ${s.labelHV} · ≈${approx}° from horizontal`;
+  if (e.lineSwatchSlope) {
+    e.lineSwatchSlope.style.background = s.color;
+    e.lineSwatchSlope.style.boxShadow = `0 0 0 2px ${s.color}33`;
+  }
+  if (e.lineSwatchCrest) {
+    e.lineSwatchCrest.style.background = s.color;
+    e.lineSwatchCrest.style.boxShadow = `0 0 0 1.5px ${s.color}`;
+  }
   updateMeasureUI();
 }
 
@@ -155,21 +166,25 @@ function draw() {
   const crestPoints = [];
 
   const drawLabel = (text, x, y, opts = {}) => {
-    const padX = opts.padX ?? 8;
-    const padY = opts.padY ?? 5;
-    const font = opts.font ?? '800 11px system-ui, sans-serif';
+    const padX = opts.padX ?? 10;
+    const font = opts.font ?? '800 13px system-ui, sans-serif';
+    const boxH = opts.boxH ?? 26;
     ctx.font = font;
     const tw = ctx.measureText(text).width;
     const bx = x - (opts.align === 'left' ? 0 : opts.align === 'right' ? tw + padX * 2 : (tw + padX * 2) / 2);
-    const by = y - 11;
-    roundRect(ctx, bx, by, tw + padX * 2, 22, 7);
-    ctx.fillStyle = opts.bg ?? 'rgba(15,23,42,0.88)';
+    const by = y - Math.round(boxH / 2);
+    // Shadow plate for contrast over bright camera frames
+    roundRect(ctx, bx - 1, by - 1, tw + padX * 2 + 2, boxH + 2, 9);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fill();
+    roundRect(ctx, bx, by, tw + padX * 2, boxH, 8);
+    ctx.fillStyle = opts.bg ?? 'rgba(15,23,42,0.94)';
     ctx.fill();
     ctx.strokeStyle = opts.border ?? '#fde047';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2;
     ctx.stroke();
     ctx.fillStyle = opts.fg ?? '#fde047';
-    ctx.fillText(text, bx + padX, by + 15);
+    ctx.fillText(text, bx + padX, by + Math.round(boxH * 0.68));
   };
 
   const drawWall = (side) => {
@@ -232,38 +247,39 @@ function draw() {
   ctx.stroke();
 
   // TOE label — yellow baseline = bottom of ditch
-  const toeLabelY = Math.min(h - 18, baseY + 28);
+  const toeLabelY = Math.min(h - 22, baseY + 32);
   drawLabel('TOE — bottom of ditch', ax, toeLabelY, {
-    bg: 'rgba(15,23,42,0.9)',
+    bg: 'rgba(15,23,42,0.95)',
     border: '#fde047',
-    fg: '#fde047',
+    fg: '#fef08a',
   });
 
   // CREST labels — top of cut / start of slope from grade
   if (crestPoints.length === 1) {
     const cp = crestPoints[0];
-    drawLabel('CREST — top of cut', cp.x, Math.max(18, cp.y - 18), {
+    drawLabel('CREST — top of cut', cp.x, Math.max(22, cp.y - 22), {
       border: color,
-      fg: color,
-      bg: 'rgba(15,23,42,0.9)',
+      fg: '#ffffff',
+      bg: 'rgba(15,23,42,0.95)',
     });
   } else {
     crestPoints.forEach((cp) => {
       const lx = cp.side < 0 ? cp.x - 8 : cp.x + 8;
-      drawLabel('CREST', lx, Math.max(18, cp.y - 18), {
+      drawLabel('CREST — top', lx, Math.max(22, cp.y - 22), {
         align: cp.side < 0 ? 'right' : 'left',
         border: color,
-        fg: color,
-        bg: 'rgba(15,23,42,0.9)',
+        fg: '#ffffff',
+        bg: 'rgba(15,23,42,0.95)',
       });
     });
     // One explanatory caption near the higher crest
     const mid = crestPoints[0];
-    drawLabel('top of cut / start of slope', w / 2, Math.max(40, mid.y - 40), {
-      border: hexAlpha(color, 0.7),
-      fg: '#e2e8f0',
-      bg: 'rgba(15,23,42,0.82)',
-      font: '700 10px system-ui, sans-serif',
+    drawLabel('top of cut / start of slope', w / 2, Math.max(48, mid.y - 46), {
+      border: hexAlpha(color, 0.85),
+      fg: '#f8fafc',
+      bg: 'rgba(15,23,42,0.92)',
+      font: '800 12px system-ui, sans-serif',
+      boxH: 24,
     });
   }
 
@@ -300,6 +316,13 @@ function showAlignStrip(on) {
   e.alignStrip.hidden = !on;
 }
 
+function openGuideTip() {
+  const e = els();
+  if (!e.guideTip) return;
+  e.guideTip.hidden = false;
+  if (e.hudHint) e.hudHint.style.opacity = '0';
+}
+
 function showGuideTipIfNeeded() {
   const e = els();
   if (!e.guideTip) return;
@@ -308,8 +331,7 @@ function showGuideTipIfNeeded() {
     e.guideTip.hidden = true;
     return;
   }
-  e.guideTip.hidden = false;
-  if (e.hudHint) e.hudHint.style.opacity = '0';
+  openGuideTip();
 }
 
 function dismissGuideTip() {
@@ -653,6 +675,9 @@ function wireOnce() {
   if (e.btnGuideGotIt) {
     e.btnGuideGotIt.addEventListener('click', dismissGuideTip);
   }
+  if (e.btnShowGuide) {
+    e.btnShowGuide.addEventListener('click', openGuideTip);
+  }
   document.querySelectorAll('.soil-btn').forEach((btn) => {
     btn.addEventListener('click', () => setSoil(btn.dataset.soil));
   });
@@ -721,7 +746,7 @@ export const slopeHelp = `
     <li><strong>Type B</strong> — 1:1 (≈45°)</li>
     <li><strong>Type C</strong> — 1½:1 (≈34°)</li>
   </ul>
-  <p><strong>Camera guide:</strong> stand for a cross-section view. Drag the yellow <strong>TOE</strong> (bottom of ditch) to the trench floor, then scale so <strong>CREST</strong> (top of cut) meets grade. Compare the real face to the colored guide.</p>
+  <p><strong>Line guide:</strong> yellow dashed = <strong>TOE</strong> (trench floor); colored line = required OSHA slope face; colored dot = <strong>CREST</strong> (top of cut). Stand for a cross-section view, drag TOE to the bottom, then scale so CREST meets grade.</p>
   <p>Optional: tap <strong>Measure angle</strong> and hold the phone flat against the soil face to check tilt vs the allowed max.</p>
   <p class="disclaimer">Educational / field reference only. A competent person must classify soil and select protective systems.</p>
 `;

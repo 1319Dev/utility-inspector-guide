@@ -191,9 +191,9 @@
           </div>
           <div class="hud-hint" id="hud-hint">Drag TOE to trench bottom · scale CREST to grade</div>
           <div id="align-strip" class="align-strip" hidden aria-hidden="true">
-            <span class="align-step"><span class="align-num">1</span> Toe</span>
+            <span class="align-step"><span class="align-num">1</span> TOE (bottom)</span>
             <span class="align-arrow" aria-hidden="true">→</span>
-            <span class="align-step"><span class="align-num">2</span> Crest</span>
+            <span class="align-step"><span class="align-num">2</span> CREST (top)</span>
             <span class="align-arrow" aria-hidden="true">→</span>
             <span class="align-step"><span class="align-num">3</span> Compare</span>
           </div>
@@ -279,6 +279,27 @@
               <strong id="meta-title">Type B</strong>
               <span id="meta-detail">H:V 1:1 · ≈45° from horizontal</span>
             </div>
+          </div>
+          <div class="line-guide" id="line-guide" aria-label="Line guide — what each overlay line means">
+            <div class="line-guide-head">
+              <strong>Line guide</strong>
+              <button type="button" id="btn-show-guide" class="linkish-btn">Show guide</button>
+            </div>
+            <ul class="line-guide-list">
+              <li>
+                <span class="line-swatch line-swatch-toe" aria-hidden="true"></span>
+                <span><strong>TOE</strong> — yellow dashed line = bottom of ditch / trench floor (drag this)</span>
+              </li>
+              <li>
+                <span class="line-swatch line-swatch-slope" id="line-swatch-slope" aria-hidden="true"></span>
+                <span><strong>Slope face</strong> — colored line = required OSHA slope for selected soil type</span>
+              </li>
+              <li>
+                <span class="line-swatch line-swatch-crest" id="line-swatch-crest" aria-hidden="true"></span>
+                <span><strong>CREST</strong> — colored dot = top of cut where slope meets grade</span>
+              </li>
+            </ul>
+            <p class="line-guide-tip">Stand for a cross-section view: line yellow TOE up with the trench bottom, then stretch the colored face to match the wall.</p>
           </div>
           <div class="slider-row">
             <label for="scale-slider">Scale</label>
