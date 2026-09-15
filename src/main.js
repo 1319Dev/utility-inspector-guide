@@ -14,6 +14,8 @@ import { mountEmergency } from './tools/emergency.js';
 import { mountLookups } from './tools/lookups.js';
 import { mountScope } from './tools/scopeSearch.js';
 import { mountDaily } from './tools/dailyReport.js';
+import { mountStation, leaveStation } from './tools/stationLocator.js';
+import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
 
 const VIEWS = [
   'home',
@@ -30,6 +32,8 @@ const VIEWS = [
   'lookups',
   'scope',
   'daily',
+  'station',
+  'weather',
 ];
 
 const mounted = new Set();
@@ -40,6 +44,12 @@ function showView(name) {
 
   if (current === 'slope' && name !== 'slope') {
     leaveSlope();
+  }
+  if (current === 'station' && name !== 'station') {
+    leaveStation();
+  }
+  if (current === 'weather' && name !== 'weather') {
+    leaveWeather();
   }
 
   document.querySelectorAll('.view').forEach((el) => {
@@ -52,7 +62,10 @@ function showView(name) {
   else document.body.classList.add('view-scroll');
 
   if (name === 'slope') enterSlope();
-  else ensureMounted(name);
+  else {
+    ensureMounted(name);
+    if (name === 'weather') enterWeather();
+  }
 
   current = name;
   const hash = name === 'home' ? '' : `#${name}`;
@@ -77,6 +90,8 @@ function ensureMounted(name) {
     lookups: ['lookups-root', mountLookups],
     scope: ['scope-root', mountScope],
     daily: ['daily-root', mountDaily],
+    station: ['station-root', mountStation],
+    weather: ['weather-root', mountWeather],
   };
   const entry = map[name];
   if (!entry) return;

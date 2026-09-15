@@ -23,7 +23,7 @@ function html() {
     <div class="card">
       <div class="field"><label>Inspector</label><input id="ps-name" value="${escapeAttr(s.inspectorName || '')}" /></div>
       <div class="field-row">
-        <div class="field"><label>Station / MP</label><input id="ps-station" placeholder="e.g. 12+45" /></div>
+        <div class="field"><label>Station / MP</label><input id="ps-station" placeholder="e.g. 12+45" value="${escapeAttr(s.currentStation || '')}" /></div>
         <div class="field"><label>Soil type</label>
           <select id="ps-soil"><option>A</option><option selected>B</option><option>C</option><option>N/A</option></select>
         </div>

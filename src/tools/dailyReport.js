@@ -1,12 +1,14 @@
 /**
  * Daily Progress Report — digital form matching company PDF template
  */
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import {
   load,
   save,
   loadSettings,
   saveSettings,
   downloadText,
+  downloadBlob,
   formatStamp,
   uid,
 } from '../store.js';
@@ -255,6 +257,63 @@ function toPrintableHtml(report) {
 </body></html>`;
 }
 
+
+const TEMPLATE_PDF = './templates/daily-progress-report.pdf';
+
+function setText(form, name, value) {
+  try {
+    const field = form.getTextField(name);
+    field.setText(value == null || value === '' ? '' : String(value));
+  } catch {
+    /* missing field — ignore */
+  }
+}
+
+function formatDateForPdf(iso) {
+  if (!iso) return '';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return String(iso);
+  return `${m[2]}/${m[3]}/${m[1]}`;
+}
+
+/** Fill company AcroForm template and return PDF bytes */
+async function fillCompanyPdf(report) {
+  const res = await fetch(TEMPLATE_PDF);
+  if (!res.ok) throw new Error(`Could not load PDF template (${res.status})`);
+  const templateBytes = await res.arrayBuffer();
+  const pdf = await PDFDocument.load(templateBytes);
+  const form = pdf.getForm();
+
+  setText(form, 'date', formatDateForPdf(report.date));
+  setText(form, 'inspector', report.inspector);
+  setText(form, 'contractor', report.contractor);
+  setText(form, 'project no', report.projectNo);
+
+  PHASES.forEach((name, i) => {
+    const ph = report.phases[name] || emptyPhase();
+    const base = i * 6;
+    setText(form, String(base + 1), ph.from);
+    setText(form, String(base + 2), ph.to);
+    setText(form, String(base + 3), ph.today);
+    setText(form, String(base + 4), ph.previous);
+    setText(form, String(base + 5), ph.total);
+    setText(form, String(base + 6), ph.pct === '' ? '' : `${ph.pct}`);
+  });
+
+  setText(form, '103', report.comments);
+  setText(form, '104', report.signature || report.inspector);
+  setText(form, '105', report.mileage);
+  setText(form, '106', report.arrival);
+  setText(form, '107', report.departure);
+  setText(form, '108', report.hours);
+
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  form.updateFieldAppearances(font);
+  form.flatten();
+
+  return pdf.save();
+}
+
 function downloadHtml(filename, html) {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -380,7 +439,7 @@ export function mountDaily(el, preload = null) {
 
   el.dataset.reportId = draft.id || uid();
   el.innerHTML = `
-    <p class="muted">Fill the daily progress report on your phone. Totals and hours auto-calc. Matches your company form layout — export to share or print. Not a signed legal original.</p>
+    <p class="muted">Fill the daily progress report on your phone. Totals and hours auto-calc. <strong>Save PDF</strong> fills the company form. Not a signed legal original.</p>
     <div class="card">
       <h3>Header</h3>
       <div class="field-row">
@@ -394,6 +453,13 @@ export function mountDaily(el, preload = null) {
     <div class="card">
       <h3>Phase of Construction</h3>
       <p class="muted">Expand a phase to enter station &amp; footage. Total = Today + Previous. Optional job total auto-fills %.</p>
+      ${
+        s.currentStation
+          ? `<p class="muted" id="dr-sta-row">Locator station: <strong>${esc(s.currentStation)}</strong>
+              <button type="button" class="secondary-btn" id="dr-use-station" style="margin-top:8px">Set From on first empty phase</button>
+            </p>`
+          : '<p class="muted" id="dr-sta-row">No Station Locator value yet — open Station Locator to snap GPS.</p>'
+      }
       <div class="dr-phases">${renderPhaseCards(draft.phases)}</div>
     </div>
 
@@ -418,10 +484,11 @@ export function mountDaily(el, preload = null) {
 
     <div class="card">
       <div class="btn-row">
+        <button type="button" class="primary-btn" id="dr-export-pdf">Save PDF (company form)</button>
         <button type="button" class="secondary-btn" id="dr-save">Save draft</button>
-        <button type="button" class="primary-btn" id="dr-export-html">Export HTML</button>
       </div>
       <div class="btn-row">
+        <button type="button" class="secondary-btn" id="dr-export-html">Export HTML</button>
         <button type="button" class="secondary-btn" id="dr-export-txt">Export text</button>
         <button type="button" class="secondary-btn" id="dr-new">New day</button>
       </div>
@@ -430,13 +497,13 @@ export function mountDaily(el, preload = null) {
 
     <div class="card">
       <h3>Company PDF template</h3>
+      <p class="muted"><strong>Save PDF</strong> fills your company AcroForm and downloads it. Blank template also available below.</p>
       <a class="secondary-btn dr-link-btn" href="./templates/daily-progress-report.pdf" target="_blank" rel="noopener">Open blank company PDF</a>
       <div class="field" style="margin-top:12px">
         <label>Optional: note your own blank PDF name (reference only)</label>
         <input id="dr-tpl-name" value="${esc(customTpl)}" placeholder="e.g. ACME-daily-progress.pdf" />
       </div>
       <button type="button" class="secondary-btn" id="dr-tpl-save">Save template note</button>
-      <p class="muted">Phone form is the primary fill path; the PDF is for company blank / print reference.</p>
     </div>
 
     <div class="card">
@@ -483,6 +550,26 @@ export function mountDaily(el, preload = null) {
     status(`Saved ${data.date} on this device.`);
   });
 
+  el.querySelector('#dr-export-pdf').addEventListener('click', async () => {
+    const btn = el.querySelector('#dr-export-pdf');
+    const data = persistDraft();
+    btn.disabled = true;
+    status('Filling company PDF…');
+    try {
+      const bytes = await fillCompanyPdf(data);
+      downloadBlob(
+        `Daily-Progress-Report-${data.date}.pdf`,
+        new Blob([bytes], { type: 'application/pdf' })
+      );
+      status('Downloaded filled company PDF.');
+    } catch (err) {
+      console.error(err);
+      status(err?.message || 'PDF export failed.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   el.querySelector('#dr-export-html').addEventListener('click', () => {
     const data = persistDraft();
     downloadHtml(`daily-progress-${data.date}.html`, toPrintableHtml(data));
@@ -516,6 +603,24 @@ export function mountDaily(el, preload = null) {
   el.querySelector('#dr-tpl-save').addEventListener('click', () => {
     save(TEMPLATE_KEY, el.querySelector('#dr-tpl-name').value.trim());
     status('Template note saved.');
+  });
+
+  el.querySelector('#dr-use-station')?.addEventListener('click', () => {
+    const sta = loadSettings().currentStation;
+    if (!sta) return;
+    for (const name of PHASES) {
+      const id = phaseId(name);
+      const fromEl = el.querySelector(`#${id}-from`);
+      if (fromEl && !fromEl.value.trim()) {
+        fromEl.value = sta;
+        const details = fromEl.closest('details');
+        if (details) details.open = true;
+        status(`Set Station From on ${name} to ${sta}.`);
+        persistDraft();
+        return;
+      }
+    }
+    status('All phases already have Station From filled.');
   });
 
   renderHistoryList(el);

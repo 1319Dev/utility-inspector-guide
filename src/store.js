@@ -30,6 +30,7 @@ export function loadSettings() {
     ],
     nearestEr: '',
     lastSoil: 'B',
+    currentStation: '',
   });
 }
 

@@ -967,3 +967,130 @@ table.data th {
   line-height: 48px;
   margin-top: 4px;
 }
+
+
+/* Station Locator */
+.sl-dist {
+  margin-top: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-section {
+  margin-top: 14px;
+}
+
+.sl-section h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+button.list-item.sl-pick {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+button.list-item.sl-pick:active,
+button.list-item.sl-pick[data-nearest="1"] {
+  border-color: var(--accent);
+}
+
+#sl-status.error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+
+/* Weather Radar */
+.wx-map-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 360px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #020617;
+  border: 1px solid #334155;
+}
+
+.wx-radar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0b1220;
+}
+
+.wx-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  pointer-events: none;
+  border: 2px solid #fde047;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
+}
+
+.wx-crosshair::before,
+.wx-crosshair::after {
+  content: '';
+  position: absolute;
+  background: #fde047;
+}
+
+.wx-crosshair::before {
+  left: 50%;
+  top: -6px;
+  bottom: -6px;
+  width: 2px;
+  margin-left: -1px;
+}
+
+.wx-crosshair::after {
+  top: 50%;
+  left: -6px;
+  right: -6px;
+  height: 2px;
+  margin-top: -1px;
+}
+
+.wx-dist {
+  margin-top: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-box.wx-warn {
+  border-color: #fbbf24;
+  background: rgba(113, 63, 18, 0.45);
+  color: #fde68a;
+}
+
+.result-box.wx-watch {
+  border-color: #38bdf8;
+  background: rgba(12, 74, 110, 0.4);
+  color: #bae6fd;
+}
+
+#wx-status.error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+a.secondary-btn.dr-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text);
+  margin-top: 0;
+  line-height: normal;
+}
