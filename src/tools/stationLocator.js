@@ -1123,7 +1123,7 @@ export function mountStation(el) {
   const s = loadSettings();
   filterMode = 'stations';
   el.innerHTML = `
-    <p class="muted">Upload a Google Earth <strong>KMZ/KML</strong> with station pins (e.g. every 100 ft). Choose <strong>Live estimate</strong> (smoothed foot station while walking) or <strong>Pin only</strong> (nearest 100-ft placemark). Poles, property lines, TWS show as nearby features.</p>
+    <p class="muted">Upload a Google Earth <strong>KMZ/KML</strong> with station pins (e.g. every 100 ft). Choose <strong>Live estimate</strong> (smoothed foot station while walking) or <strong>Pin only</strong> (nearest 100-ft placemark). Photo Stamp and Bell Hole autofill from this live/saved station when you capture. Poles, property lines, TWS show as nearby features.</p>
     <div class="card">
       <h3>Upload map</h3>
       <div class="sow-drop" id="sl-drop" role="button" tabindex="0">
@@ -1210,11 +1210,24 @@ export function mountStation(el) {
     updateReadout();
   });
 
-  stationMode = 'live';
+  stationMode = s.stationMode === 'pin' ? 'pin' : 'live';
+  el.querySelectorAll('#sl-station-mode button').forEach((b) =>
+    b.classList.toggle('active', b.dataset.staMode === stationMode)
+  );
+  {
+    const hint0 = el.querySelector('#sl-mode-hint');
+    if (hint0) {
+      hint0.textContent =
+        stationMode === 'pin'
+          ? 'Pin only — snaps to nearest 100-ft station placemark (no foot interpolation).'
+          : 'Live estimate interpolates between 100-ft pins (e.g. 26+06) with smoothing. Phone GPS ~10–30 ft — approximate only.';
+    }
+  }
   el.querySelector('#sl-station-mode').addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-sta-mode]');
     if (!btn) return;
     stationMode = btn.dataset.staMode;
+    saveSettings({ stationMode });
     el.querySelectorAll('#sl-station-mode button').forEach((b) => b.classList.toggle('active', b === btn));
     const hint = el.querySelector('#sl-mode-hint');
     if (hint) {

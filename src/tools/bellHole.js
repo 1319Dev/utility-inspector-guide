@@ -11,6 +11,7 @@ import {
   downloadText,
   uid,
 } from '../store.js';
+import { autofillStationField } from '../stationResolve.js';
 
 const CHECKS = [
   { id: 'walls', label: 'Excavation walls stable / no cave-in hazard observed' },
@@ -72,12 +73,16 @@ function loadImageFromBlob(blob) {
   img.src = url;
 }
 
-function captureFrame() {
+async function captureFrame() {
   const video = root.querySelector('#bh-video');
   if (!video?.videoWidth) {
     root.querySelector('#bh-cam-err').textContent = 'Start camera first, then capture.';
     return;
   }
+  gps = await getGps();
+  const gpsLabel = root.querySelector('#bh-gps-label');
+  if (gpsLabel) gpsLabel.textContent = fmtGps(gps);
+  await autofillStation(gps);
   const c = document.createElement('canvas');
   c.width = video.videoWidth;
   c.height = video.videoHeight;
@@ -192,6 +197,15 @@ function buildSummary() {
   return { text: lines.join('\n'), checks, name, station, note };
 }
 
+
+async function autofillStation(gpsOverride) {
+  const input = root?.querySelector('#bh-station');
+  const status = root?.querySelector('#bh-sta-status');
+  if (!input) return null;
+  const opts = gpsOverride !== undefined ? { gps: gpsOverride } : {};
+  return autofillStationField(input, status, opts);
+}
+
 export function leaveBellHole() {
   stopCamera();
 }
@@ -204,7 +218,7 @@ export function mountBellHole(el) {
   gps = null;
 
   el.innerHTML = `
-    <p class="muted">Capture a bell hole photo and run a glove-friendly approval checklist. Stamped photo + text/JSON export. <strong>Not engineering approval</strong> — follow your competent person and company procedure.</p>
+    <p class="muted">Capture a bell hole photo and run a glove-friendly approval checklist. Station autofills from Station Locator (live/saved). Stamped photo + text/JSON export. <strong>Not engineering approval</strong> — follow your competent person and company procedure.</p>
 
     <div class="card">
       <h3>Camera</h3>
@@ -229,6 +243,7 @@ export function mountBellHole(el) {
       <h3>Meta</h3>
       <div class="field"><label>Inspector</label><input id="bh-name" value="${escapeAttr(s.inspectorName || '')}" /></div>
       <div class="field"><label>Station</label><input id="bh-station" placeholder="e.g. 26+00" value="${escapeAttr(s.currentStation || '')}" /></div>
+      <p class="muted" id="bh-sta-status">Station auto: …</p>
       <div class="field"><label>Note</label><textarea id="bh-note" placeholder="Bell hole location / finding"></textarea></div>
     </div>
 
@@ -267,9 +282,13 @@ export function mountBellHole(el) {
     captureBtn.disabled = !stream;
   });
   captureBtn.addEventListener('click', captureFrame);
-  el.querySelector('#bh-file').addEventListener('change', (e) => {
+  el.querySelector('#bh-file').addEventListener('change', async (e) => {
     const f = e.target.files?.[0];
-    if (f) loadImageFromBlob(f);
+    if (!f) return;
+    gps = await getGps();
+    el.querySelector('#bh-gps-label').textContent = fmtGps(gps);
+    await autofillStation(gps);
+    loadImageFromBlob(f);
   });
 
   el.querySelector('#bh-gps').addEventListener('click', async () => {
@@ -277,6 +296,7 @@ export function mountBellHole(el) {
     label.textContent = 'Getting GPS…';
     gps = await getGps();
     label.textContent = fmtGps(gps);
+    await autofillStation(gps);
     drawStamp();
   });
 
@@ -357,5 +377,6 @@ export function mountBellHole(el) {
   (async () => {
     gps = await getGps();
     el.querySelector('#bh-gps-label').textContent = fmtGps(gps);
+    await autofillStation(gps);
   })();
 }

@@ -2,13 +2,14 @@
  * Photo Stamp — capture/pick photo, overlay field metadata, download
  */
 import { loadSettings, saveSettings, formatStamp, getGps, fmtGps, downloadBlob } from '../store.js';
+import { autofillStationField } from '../stationResolve.js';
 
 let root, canvas, img, gps = null;
 
 function html() {
   const s = loadSettings();
   return `
-    <p class="muted">Stamp date, GPS, station, pipe data, and your name onto a field photo. Saved image downloads to your device.</p>
+    <p class="muted">Stamp date, GPS, station, pipe data, and your name onto a field photo. Station autofills from Station Locator (live estimate or saved). Saved image downloads to your device.</p>
     <div class="card">
       <div class="btn-row">
         <label class="primary-btn" style="display:flex;align-items:center;justify-content:center;cursor:pointer">
@@ -19,6 +20,7 @@ function html() {
       </div>
       <canvas id="photo-canvas" class="preview-canvas" width="800" height="600"></canvas>
       <p class="muted" id="photo-gps-label">GPS: …</p>
+      <p class="muted" id="ps-sta-status">Station auto: …</p>
     </div>
     <div class="card">
       <div class="field"><label>Inspector</label><input id="ps-name" value="${escapeAttr(s.inspectorName || '')}" /></div>
@@ -94,11 +96,20 @@ function drawStamp() {
   });
 }
 
+async function autofillStation(gpsOverride) {
+  const input = root?.querySelector('#ps-station');
+  const status = root?.querySelector('#ps-sta-status');
+  if (!input) return null;
+  const opts = gpsOverride !== undefined ? { gps: gpsOverride } : {};
+  return autofillStationField(input, status, opts);
+}
+
 async function refreshGps() {
   const label = root.querySelector('#photo-gps-label');
   label.textContent = 'Getting GPS…';
   gps = await getGps();
   label.textContent = fmtGps(gps);
+  await autofillStation(gps);
   drawStamp();
 }
 
@@ -116,13 +127,21 @@ export function mountPhoto(el) {
   root = el;
   root.innerHTML = html();
   canvas = root.querySelector('#photo-canvas');
-  root.querySelector('#photo-file').addEventListener('change', (e) => {
+  root.querySelector('#photo-file').addEventListener('change', async (e) => {
     const f = e.target.files?.[0];
-    if (f) loadImage(f);
+    if (!f) return;
+    // Overwrite station from live/saved at capture time
+    gps = await getGps();
+    root.querySelector('#photo-gps-label').textContent = fmtGps(gps);
+    await autofillStation(gps);
+    loadImage(f);
   });
   root.querySelector('#photo-gps').addEventListener('click', refreshGps);
   root.querySelector('#photo-redraw').addEventListener('click', () => {
-    saveSettings({ inspectorName: root.querySelector('#ps-name').value.trim() });
+    saveSettings({
+      inspectorName: root.querySelector('#ps-name').value.trim(),
+      currentStation: root.querySelector('#ps-station').value.trim() || loadSettings().currentStation,
+    });
     drawStamp();
   });
   root.querySelector('#photo-save').addEventListener('click', () => {
@@ -130,7 +149,10 @@ export function mountPhoto(el) {
       alert('Pick or capture a photo first.');
       return;
     }
-    saveSettings({ inspectorName: root.querySelector('#ps-name').value.trim() });
+    saveSettings({
+      inspectorName: root.querySelector('#ps-name').value.trim(),
+      currentStation: root.querySelector('#ps-station').value.trim() || loadSettings().currentStation,
+    });
     drawStamp();
     canvas.toBlob((blob) => {
       if (!blob) return;

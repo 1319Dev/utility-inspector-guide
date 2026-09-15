@@ -31,6 +31,7 @@ export function loadSettings() {
     nearestEr: '',
     lastSoil: 'B',
     currentStation: '',
+    stationMode: 'live', // 'live' | 'pin' — Station Locator preference
   });
 }
 

@@ -7,8 +7,8 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 ## Tools
 
 1. **Trench Slope** — live rear camera + OSHA Type A / B / C slope overlays; clinometer **Measure** (PASS / TOO STEEP)
-2. **Photo Stamp** — capture/pick photo; stamp datetime, GPS, station, pipe size/material, soil, inspector, note; download
-3. **Bell Hole** — rear camera + approval checklist; stamp Pass / Needs work / Fail; export photo + text/JSON (field aid only)
+2. **Photo Stamp** — capture/pick photo; **autofills station** from Station Locator (live estimate or saved); stamp datetime, GPS, station, pipe size/material, soil, inspector, note; download
+3. **Bell Hole** — rear camera + approval checklist; **autofills station** from Station Locator; stamp Pass / Needs work / Fail; export photo + text/JSON (field aid only)
 4. **Depth of Cover** — probe/tape entry (recommended); phone two-tap barometer/GPS estimate with honesty checks; trench depth vs min cover (gas 24″ / water 36″ / custom)
 5. **Separation Check** — measured distance vs required clearance presets (gas↔electric/water/sewer) or custom
 6. **811 / Locate** — APWA paint color legend + pre-dig checklist (ticket, marks verified, etc.)
@@ -19,7 +19,7 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 11. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
 12. **Scope of Work** — upload PDF / TXT / MD / DOCX; search; tap a hit to **open the PDF page with highlights** (IndexedDB)
 13. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export
-14. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); saves station for Photo Stamp / Daily Report / Bell Hole
+14. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); mode + station saved for Photo Stamp / Daily Report / Bell Hole autofill
 15. **Weather Radar** — WeatherBug-style Leaflet map: free keyless NOAA NEXRAD via Iowa State Mesonet (default), optional RainViewer global, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
 
 ## Quick start
@@ -46,7 +46,7 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v13` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v14` (network-first HTML).
 
 ## Data privacy
 
