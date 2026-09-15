@@ -6,7 +6,7 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 
 ## Tools
 
-1. **Trench Slope** — live rear camera + OSHA Type A / B / C slope overlays; clinometer **Measure** (PASS / TOO STEEP)
+1. **Trench Slope** — live rear camera + OSHA Type A / B / C slope overlays with **TOE / CREST** placement guide; clinometer **Measure** (PASS / TOO STEEP)
 2. **Photo Stamp** — capture/pick photo; **autofills station** from Station Locator (live estimate or saved); stamp datetime, GPS, station, pipe size/material, soil, inspector, note; download
 3. **Bell Hole** — rear camera + approval checklist; **autofills station** from Station Locator; stamp Pass / Needs work / Fail; export photo + text/JSON (field aid only)
 4. **Depth of Cover** — probe/tape entry (recommended); phone two-tap barometer/GPS estimate with honesty checks; trench depth vs min cover (gas 24″ / water 36″ / custom)
@@ -45,7 +45,7 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v16` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v17` (network-first HTML).
 
 ## Data privacy
 

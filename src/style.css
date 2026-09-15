@@ -434,6 +434,133 @@ body.view-slope {
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* Toe / crest align strip + onboarding tip */
+.align-strip {
+  position: absolute;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.88);
+  border: 1px solid var(--line-strong);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.align-strip[hidden] {
+  display: none !important;
+}
+
+.align-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.align-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(253, 224, 71, 0.18);
+  border: 1px solid #fde047;
+  color: #fde047;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.align-arrow {
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.slope-guide-tip {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.slope-guide-tip[hidden] {
+  display: none !important;
+}
+
+.slope-guide-card {
+  width: min(100%, 340px);
+  max-height: min(92%, 520px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(11, 18, 32, 0.96);
+  border: 1.5px solid var(--line-strong);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.slope-guide-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.slope-guide-lead {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.slope-guide-diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.slope-guide-steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slope-guide-steps strong {
+  color: #fde047;
+}
+
+#btn-slope-guide-gotit {
+  width: 100%;
+  margin-top: 2px;
+}
+
+
 .controls {
   z-index: 5;
   background: rgba(11, 18, 32, 0.97);

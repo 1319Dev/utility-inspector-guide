@@ -1,5 +1,5 @@
 /**
- * Trench Slope — live camera + OSHA Type A/B/C overlays + clinometer Measure
+ * Trench Slope — live camera + OSHA Type A/B/C overlays + toe/crest guide + clinometer Measure
  */
 import { loadSettings, saveSettings } from '../store.js';
 
@@ -74,6 +74,9 @@ function els() {
     metaTitle: document.getElementById('meta-title'),
     metaDetail: document.getElementById('meta-detail'),
     hudHint: document.getElementById('hud-hint'),
+    alignStrip: document.getElementById('align-strip'),
+    guideTip: document.getElementById('slope-guide-tip'),
+    btnGuideGotIt: document.getElementById('btn-slope-guide-gotit'),
     btnMeasure: document.getElementById('btn-measure'),
     measurePanel: document.getElementById('measure-panel'),
     measAngleEl: document.getElementById('meas-angle'),
@@ -149,10 +152,31 @@ function draw() {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 
+  const crestPoints = [];
+
+  const drawLabel = (text, x, y, opts = {}) => {
+    const padX = opts.padX ?? 8;
+    const padY = opts.padY ?? 5;
+    const font = opts.font ?? '800 11px system-ui, sans-serif';
+    ctx.font = font;
+    const tw = ctx.measureText(text).width;
+    const bx = x - (opts.align === 'left' ? 0 : opts.align === 'right' ? tw + padX * 2 : (tw + padX * 2) / 2);
+    const by = y - 11;
+    roundRect(ctx, bx, by, tw + padX * 2, 22, 7);
+    ctx.fillStyle = opts.bg ?? 'rgba(15,23,42,0.88)';
+    ctx.fill();
+    ctx.strokeStyle = opts.border ?? '#fde047';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = opts.fg ?? '#fde047';
+    ctx.fillText(text, bx + padX, by + 15);
+  };
+
   const drawWall = (side) => {
     const toeX = ax;
     const crestX = ax + side * run;
     const crestY = baseY - wallH;
+    crestPoints.push({ x: crestX, y: crestY, side });
     ctx.beginPath();
     ctx.moveTo(toeX, baseY);
     ctx.lineTo(crestX, baseY);
@@ -207,6 +231,42 @@ function draw() {
   ctx.strokeStyle = '#0f172a';
   ctx.stroke();
 
+  // TOE label — yellow baseline = bottom of ditch
+  const toeLabelY = Math.min(h - 18, baseY + 28);
+  drawLabel('TOE — bottom of ditch', ax, toeLabelY, {
+    bg: 'rgba(15,23,42,0.9)',
+    border: '#fde047',
+    fg: '#fde047',
+  });
+
+  // CREST labels — top of cut / start of slope from grade
+  if (crestPoints.length === 1) {
+    const cp = crestPoints[0];
+    drawLabel('CREST — top of cut', cp.x, Math.max(18, cp.y - 18), {
+      border: color,
+      fg: color,
+      bg: 'rgba(15,23,42,0.9)',
+    });
+  } else {
+    crestPoints.forEach((cp) => {
+      const lx = cp.side < 0 ? cp.x - 8 : cp.x + 8;
+      drawLabel('CREST', lx, Math.max(18, cp.y - 18), {
+        align: cp.side < 0 ? 'right' : 'left',
+        border: color,
+        fg: color,
+        bg: 'rgba(15,23,42,0.9)',
+      });
+    });
+    // One explanatory caption near the higher crest
+    const mid = crestPoints[0];
+    drawLabel('top of cut / start of slope', w / 2, Math.max(40, mid.y - 40), {
+      border: hexAlpha(color, 0.7),
+      fg: '#e2e8f0',
+      bg: 'rgba(15,23,42,0.82)',
+      font: '700 10px system-ui, sans-serif',
+    });
+  }
+
   const approx = Math.round(angleFromHorizontal(hv));
   const label = `${soil.title}  ${soil.labelHV}  ≈${approx}°`;
   ctx.font = '700 15px system-ui, sans-serif';
@@ -231,6 +291,37 @@ function draw() {
   ctx.fillStyle = color;
   ctx.fillText(ang, callX - aw / 2, callY + 4);
   ctx.restore();
+}
+
+
+function showAlignStrip(on) {
+  const e = els();
+  if (!e.alignStrip) return;
+  e.alignStrip.hidden = !on;
+}
+
+function showGuideTipIfNeeded() {
+  const e = els();
+  if (!e.guideTip) return;
+  const settings = loadSettings();
+  if (settings.slopeGuideSeen) {
+    e.guideTip.hidden = true;
+    return;
+  }
+  e.guideTip.hidden = false;
+  if (e.hudHint) e.hudHint.style.opacity = '0';
+}
+
+function dismissGuideTip() {
+  const e = els();
+  saveSettings({ slopeGuideSeen: true });
+  if (e.guideTip) e.guideTip.hidden = true;
+  if (e.hudHint && state.running) {
+    e.hudHint.style.opacity = '0.95';
+    setTimeout(() => {
+      if (e.hudHint) e.hudHint.style.opacity = '0.35';
+    }, 4500);
+  }
 }
 
 async function startCamera() {
@@ -260,11 +351,19 @@ async function startCamera() {
       await e.video.play();
       e.gate.hidden = true;
       state.running = true;
+      showAlignStrip(true);
+      showGuideTipIfNeeded();
+      if (e.hudHint) {
+        e.hudHint.textContent = 'Drag TOE to trench bottom · scale CREST to grade';
+      }
       resizeCanvas();
       requestAnimationFrame(loop);
-      setTimeout(() => {
-        if (e.hudHint) e.hudHint.style.opacity = '0.35';
-      }, 5000);
+      const tipVisible = e.guideTip && !e.guideTip.hidden;
+      if (!tipVisible) {
+        setTimeout(() => {
+          if (e.hudHint) e.hudHint.style.opacity = '0.35';
+        }, 5000);
+      }
       return;
     } catch (err) {
       lastErr = err;
@@ -286,6 +385,8 @@ function stopCamera() {
   const e = els();
   if (e.video) e.video.srcObject = null;
   if (e.gate) e.gate.hidden = false;
+  showAlignStrip(false);
+  if (e.guideTip) e.guideTip.hidden = true;
 }
 
 function loop() {
@@ -549,6 +650,9 @@ function wireOnce() {
   wired = true;
   const e = els();
   e.btnStart.addEventListener('click', startCamera);
+  if (e.btnGuideGotIt) {
+    e.btnGuideGotIt.addEventListener('click', dismissGuideTip);
+  }
   document.querySelectorAll('.soil-btn').forEach((btn) => {
     btn.addEventListener('click', () => setSoil(btn.dataset.soil));
   });
@@ -617,5 +721,7 @@ export const slopeHelp = `
     <li><strong>Type B</strong> — 1:1 (≈45°)</li>
     <li><strong>Type C</strong> — 1½:1 (≈34°)</li>
   </ul>
+  <p><strong>Camera guide:</strong> stand for a cross-section view. Drag the yellow <strong>TOE</strong> (bottom of ditch) to the trench floor, then scale so <strong>CREST</strong> (top of cut) meets grade. Compare the real face to the colored guide.</p>
+  <p>Optional: tap <strong>Measure angle</strong> and hold the phone flat against the soil face to check tilt vs the allowed max.</p>
   <p class="disclaimer">Educational / field reference only. A competent person must classify soil and select protective systems.</p>
 `;
