@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="Live camera overlay of OSHA Type A/B/C trench excavation slopes. Educational use only."
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <title>Trench Slope Guide</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top-bar">
+        <h1>Trench Slope</h1>
+        <button type="button" id="btn-info" class="icon-btn" aria-label="Disclaimer and help">
+          ?
+        </button>
+      </header>
+
+      <main class="stage">
+        <video id="camera" playsinline muted autoplay></video>
+        <canvas id="overlay" aria-hidden="true"></canvas>
+
+        <div id="camera-gate" class="gate">
+          <p class="gate-title">Camera access needed</p>
+          <p class="gate-body">
+            Use the rear camera to align OSHA slope guides with the trench face.
+          </p>
+          <button type="button" id="btn-start" class="primary-btn">Start camera</button>
+          <p id="camera-error" class="error" hidden></p>
+        </div>
+
+        <div class="hud-hint" id="hud-hint">
+          Drag baseline · Pinch or use scale to fit trench
+        </div>
+      </main>
+
+      <section class="controls" aria-label="Soil type and overlay controls">
+        <div class="soil-row" role="radiogroup" aria-label="OSHA soil type">
+          <button type="button" class="soil-btn" data-soil="A" aria-pressed="false">
+            <span class="soil-label">Type A</span>
+            <span class="soil-ratio">¾ : 1</span>
+            <span class="soil-angle">≈ 53°</span>
+          </button>
+          <button type="button" class="soil-btn active" data-soil="B" aria-pressed="true">
+            <span class="soil-label">Type B</span>
+            <span class="soil-ratio">1 : 1</span>
+            <span class="soil-angle">≈ 45°</span>
+          </button>
+          <button type="button" class="soil-btn" data-soil="C" aria-pressed="false">
+            <span class="soil-label">Type C</span>
+            <span class="soil-ratio">1½ : 1</span>
+            <span class="soil-angle">≈ 34°</span>
+          </button>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-chip" id="meta-chip">
+            <strong id="meta-title">Type B</strong>
+            <span id="meta-detail">H:V 1:1 · ≈45° from horizontal</span>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <label for="scale-slider">Scale</label>
+          <input
+            id="scale-slider"
+            type="range"
+            min="40"
+            max="220"
+            value="100"
+            aria-valuemin="40"
+            aria-valuemax="220"
+            aria-valuenow="100"
+          />
+          <button type="button" id="btn-reset" class="secondary-btn">Reset</button>
+        </div>
+
+        <div class="action-row">
+          <button type="button" id="btn-flip" class="secondary-btn">Flip side</button>
+          <button type="button" id="btn-both" class="secondary-btn" aria-pressed="true">
+            Both walls
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <dialog id="info-dialog">
+      <form method="dialog" class="dialog-body">
+        <h2>About &amp; disclaimer</h2>
+        <p>
+          This app overlays <strong>OSHA sloping angles</strong> for soil Types A, B, and C on your
+          live camera so you can visually compare a trench face. Ratios are horizontal:vertical
+          (H:V).
+        </p>
+        <ul>
+          <li><strong>Type A</strong> — ¾:1 (≈53°)</li>
+          <li><strong>Type B</strong> — 1:1 (≈45°)</li>
+          <li><strong>Type C</strong> — 1½:1 (≈34°)</li>
+        </ul>
+        <p class="disclaimer">
+          <strong>Educational / field reference only.</strong> Not engineering advice. Not a
+          substitute for a competent person, site-specific soil classification, protective systems,
+          or applicable OSHA / local rules. Always follow your employer’s excavation safety program.
+        </p>
+        <p class="howto">
+          Tip: stand so the trench face fills the view. Drag the yellow baseline to the toe or
+          crest, then scale until the guide matches the expected slope.
+        </p>
+        <button type="submit" class="primary-btn">Got it</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
