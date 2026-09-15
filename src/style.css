@@ -154,6 +154,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 48vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .soil-row {
@@ -459,4 +462,22 @@ dialog::backdrop {
 .action-row .secondary-btn {
   flex: 1 1 calc(33% - 8px);
   min-width: 96px;
+}
+
+
+.measure-row {
+  order: 0;
+}
+
+.measure-btn {
+  width: 100%;
+  flex: 1;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+#btn-measure[aria-pressed='true'] {
+  background: #15803d;
+  border-color: #4ade80;
+  color: #f8fafc;
 }
