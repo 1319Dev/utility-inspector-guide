@@ -15,8 +15,19 @@ export function load(key, fallback = null) {
 export function save(key, value) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    return true;
   } catch {
     /* quota / private mode */
+    return false;
+  }
+}
+
+export function remove(key) {
+  try {
+    localStorage.removeItem(PREFIX + key);
+    return true;
+  } catch {
+    return false;
   }
 }
 
