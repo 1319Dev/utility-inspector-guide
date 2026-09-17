@@ -15,6 +15,7 @@ import { mountDaily } from './tools/dailyReport.js';
 import { mountStation, leaveStation } from './tools/stationLocator.js';
 import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
 import { mountBellHole, leaveBellHole } from './tools/bellHole.js';
+import { mountCrossing, leaveCrossing, canLeaveCrossing } from './tools/crossingSketch.js';
 
 const VIEWS = [
   'home',
@@ -32,6 +33,7 @@ const VIEWS = [
   'station',
   'weather',
   'bellhole',
+  'crossing',
 ];
 
 const mounted = new Set();
@@ -52,14 +54,24 @@ function showView(name) {
   if (current === 'bellhole' && name !== 'bellhole') {
     leaveBellHole();
   }
+  if (current === 'crossing' && name !== 'crossing') {
+    if (!canLeaveCrossing()) {
+      if (location.hash.replace(/^#/, '') !== 'crossing') {
+        history.replaceState(null, '', '#crossing');
+      }
+      return;
+    }
+    leaveCrossing();
+  }
 
   document.querySelectorAll('.view').forEach((el) => {
     el.hidden = el.dataset.view !== name;
   });
 
-  document.body.classList.remove('view-home', 'view-scroll', 'view-slope');
+  document.body.classList.remove('view-home', 'view-scroll', 'view-slope', 'view-crossing');
   if (name === 'home') document.body.classList.add('view-home', 'view-scroll');
   else if (name === 'slope') document.body.classList.add('view-slope');
+  else if (name === 'crossing') document.body.classList.add('view-crossing');
   else document.body.classList.add('view-scroll');
 
   if (name === 'slope') enterSlope();
@@ -92,6 +104,7 @@ function ensureMounted(name) {
     station: ['station-root', mountStation],
     weather: ['weather-root', mountWeather],
     bellhole: ['bellhole-root', mountBellHole],
+    crossing: ['crossing-root', mountCrossing],
   };
   const entry = map[name];
   if (!entry) return;
