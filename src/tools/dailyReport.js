@@ -651,11 +651,12 @@ async function fillOqHook(el) {
       return;
     }
     const n = crew.results?.workers ?? crew.crew?.length ?? 0;
-    const when = crew.verifiedAt || crew.date || '';
+    const when = crew.verifiedAt ? formatStamp(new Date(crew.verifiedAt)) : crew.date || '';
+    const who = crew.inspector || 'inspector';
     if (crew.allVerified) {
       box.innerHTML = `<div class="card oq-hook-card">
         <h3>OQs verified</h3>
-        <p class="muted">${n} workers on today’s crew · ${crew.inspector || 'inspector'} · ${when}. On-device record only — not a live OQ network feed.</p>
+        <p class="muted">${n} workers on today’s crew · ${who} · ${when}. On-device record only — not a live OQ network feed.</p>
       </div>`;
     } else {
       box.innerHTML = `<div class="card oq-hook-card">
