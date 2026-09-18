@@ -45,6 +45,7 @@ export async function mountMaterials(root) {
   let pendingImport = null;
   let gps = null;
   let checkStatus = 'ok';
+  let lastCheckinMsg = '';
 
   root.innerHTML = `
     ${complianceNote()}
@@ -269,7 +270,7 @@ export async function mountMaterials(root) {
         <textarea id="ci-notes" rows="2" placeholder="Damage, short truck, heat mismatch…"></textarea>
       </div>
       <button type="button" class="primary-btn" id="ci-save">Save check-in</button>
-      <p class="muted" id="ci-save-status" role="status"></p>
+      <p class="muted" id="ci-save-status" role="status">${esc(lastCheckinMsg)}</p>
       <h3>History</h3>
       <div class="list" id="ci-hist">
         ${
@@ -365,7 +366,8 @@ export async function mountMaterials(root) {
       if (prog.complete && !line.complete && !line.completeOverride) {
         await putRecord('materials', { ...line, complete: true, completeOverride: false });
       }
-      statusEl.textContent = 'Check-in saved.';
+      lastCheckinMsg = 'Check-in saved.';
+      statusEl.textContent = lastCheckinMsg;
       await loadAll();
       paintListFilter();
       paintLines();
