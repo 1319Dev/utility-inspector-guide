@@ -20,7 +20,7 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 12. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export
 13. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); mode + station saved for Photo Stamp / Daily Report / Bell Hole autofill
 14. **Weather Radar** — WeatherBug-style Leaflet map: free keyless NOAA NEXRAD via Iowa State Mesonet (default), optional RainViewer global, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
-15. **Mitti** — one-tap launcher to the official Mitti (SafetyCulture) web app (`https://app.mitti.com/`). Opens the installed mobile app on iPhone when available. This PWA does not replace Mitti and does not call the Mitti API.
+15. **Mitti** — one-tap launcher to the official SafetyCulture / Mitti web app (`https://app.safetyculture.com/`). Opens the installed mobile app on iPhone when available. This PWA does not replace Mitti and does not call the Mitti API.
 
 ## Quick start
 

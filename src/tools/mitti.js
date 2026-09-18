@@ -3,7 +3,7 @@
  * No API tokens or SafetyCulture/Mitti API calls.
  */
 
-const MITTI_URL = 'https://app.mitti.com/';
+const MITTI_URL = 'https://app.safetyculture.com/';
 
 export function mountMitti(root) {
   root.innerHTML = `
@@ -19,7 +19,7 @@ export function mountMitti(root) {
         rel="noopener noreferrer"
       >Open Mitti</a>
       <p class="muted mitti-note">
-        Opens the official Mitti web app. On iPhone, Safari hands off to the Mitti / SafetyCulture app when it is installed.
+        Opens the official SafetyCulture / Mitti web app. On iPhone, Safari often hands off to the installed Mitti app.
         Inspections, issues, and observations live inside Mitti — navigate there after it opens.
       </p>
     </div>
