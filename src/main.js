@@ -16,6 +16,7 @@ import { mountStation, leaveStation } from './tools/stationLocator.js';
 import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
 import { mountBellHole, leaveBellHole } from './tools/bellHole.js';
 import { mountMitti } from './tools/mitti.js';
+import { mountMaterials } from './tools/materials.js';
 import { mountProjects, mountProjectEdit } from './tools/projects.js';
 import { mountPersonnel, mountWorkerEdit } from './tools/personnel.js';
 import { mountOqCenter, mountOqEdit } from './tools/oqCenter.js';
@@ -55,6 +56,7 @@ const VIEWS = [
   'weather',
   'bellhole',
   'mitti',
+  'materials',
 ];
 
 const REMOUNT = new Set([
@@ -69,6 +71,7 @@ const REMOUNT = new Set([
   'oq-edit',
   'crew',
   'start-of-day',
+  'materials',
 ]);
 
 const mounted = new Set();
@@ -143,6 +146,7 @@ function ensureMounted(name) {
     weather: ['weather-root', mountWeather],
     bellhole: ['bellhole-root', mountBellHole],
     mitti: ['mitti-root', mountMitti],
+    materials: ['materials-root', mountMaterials],
   };
   const entry = map[name];
   if (!entry) return;

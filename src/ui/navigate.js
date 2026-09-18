@@ -58,6 +58,7 @@ export const TAB_FOR_VIEW = {
   emergency: 'more',
   lookups: 'more',
   mitti: 'more',
+  materials: 'inspect',
 };
 
 export function highlightTab(name) {

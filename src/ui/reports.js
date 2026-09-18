@@ -94,6 +94,13 @@ export async function mountMore(root) {
           <span class="hub-desc">Open safety culture app</span>
         </span>
       </button>
+      <button type="button" class="hub-tile" data-nav="materials" data-tone="lime">
+        <span class="hub-icon" aria-hidden="true">📦</span>
+        <span class="hub-copy">
+          <span class="hub-title">Materials Check-In</span>
+          <span class="hub-desc">Packing list · receive · Excel</span>
+        </span>
+      </button>
     </div>
     <div class="card">
       <h3>Inspector name</h3>
@@ -104,7 +111,7 @@ export async function mountMore(root) {
       <button type="button" class="primary-btn" id="more-insp-save">Save name</button>
       <p class="muted" id="more-insp-status"></p>
     </div>
-    <p class="muted">Trench slope, bell hole, cover, station, photo, pressure, locate, trench card, confined timer, and weather live under Inspect.</p>
+    <p class="muted">Trench slope, bell hole, cover, station, photo, pressure, materials check-in, locate, trench card, confined timer, and weather live under Inspect.</p>
   `;
 
   root.querySelector('#more-insp-save')?.addEventListener('click', () => {
