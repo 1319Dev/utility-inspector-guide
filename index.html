@@ -20,8 +20,9 @@
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body class="view-home">
+    <div id="sync-banner" class="sync-banner" data-state="online" role="status">ONLINE</div>
     <div id="app">
-      <!-- HOME HUB -->
+      <!-- HOME DASHBOARD -->
       <section id="view-home" class="view view-scroll" data-view="home">
         <header class="top-bar home-bar">
           <div class="brand">
@@ -31,11 +32,18 @@
           </div>
           <button type="button" id="btn-info" class="icon-btn" aria-label="Disclaimer and help">?</button>
         </header>
+        <div class="hub-body" id="home-root"></div>
+      </section>
+
+      <!-- INSPECT TOOL GRID (legacy hub tiles) -->
+      <section id="view-inspect" class="view view-scroll" data-view="inspect" hidden>
+        <header class="top-bar">
+          <span class="top-spacer"></span>
+          <h1>Inspect</h1>
+          <span class="top-spacer"></span>
+        </header>
         <div class="hub-body">
-          <p class="disclaimer-banner" role="note">
-            <span class="disclaimer-icon" aria-hidden="true">⚠</span>
-            <span>Field reference only — not engineering advice. Follow your employer’s program and a competent person.</span>
-          </p>
+          <p class="compliance-note" role="note">Always follow the operator SOW, approved procedures, and applicable regulation.</p>
 
           <section class="hub-section" aria-labelledby="hub-inspect">
             <div class="hub-section-head">
@@ -177,13 +185,111 @@
               </button>
             </div>
           </section>
+          </section>
         </div>
+      </section>
+
+      <!-- PROJECTS -->
+      <section id="view-projects" class="view view-scroll" data-view="projects" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>Projects</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="projects-root"></div>
+      </section>
+
+      <section id="view-project" class="view view-scroll" data-view="project" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="projects" aria-label="Back to projects">←</button>
+          <h1>Project</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="project-root"></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="view-reports" class="view view-scroll" data-view="reports" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>Reports</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="reports-root"></div>
+      </section>
+
+      <!-- MORE -->
+      <section id="view-more" class="view view-scroll" data-view="more" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>More</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="more-root"></div>
+      </section>
+
+      <!-- PERSONNEL -->
+      <section id="view-personnel" class="view view-scroll" data-view="personnel" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
+          <h1>Personnel</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="personnel-root"></div>
+      </section>
+
+      <section id="view-worker" class="view view-scroll" data-view="worker" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="personnel" aria-label="Back">←</button>
+          <h1>Worker</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="worker-root"></div>
+      </section>
+
+      <!-- OQ -->
+      <section id="view-oq" class="view view-scroll" data-view="oq" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
+          <h1>OQ Center</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="oq-root"></div>
+      </section>
+
+      <section id="view-oq-edit" class="view view-scroll" data-view="oq-edit" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="oq" aria-label="Back">←</button>
+          <h1>OQ Verify</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="oq-edit-root"></div>
+      </section>
+
+      <!-- CREW -->
+      <section id="view-crew" class="view view-scroll" data-view="crew" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports" aria-label="Back">←</button>
+          <h1>Crew Check</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="crew-root"></div>
+      </section>
+
+      <!-- START OF DAY -->
+      <section id="view-start-of-day" class="view view-scroll" data-view="start-of-day" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports" aria-label="Back">←</button>
+          <h1>Start of Day</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="sod-root"></div>
       </section>
 
       <!-- TRENCH SLOPE -->
       <section id="view-slope" class="view view-fill" data-view="slope" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect" aria-label="Back to inspect">←</button>
           <h1>Trench Slope</h1>
           <button type="button" class="icon-btn btn-tool-info" data-info="slope" aria-label="Slope help">?</button>
         </header>
@@ -328,7 +434,7 @@
       <!-- PHOTO STAMP -->
       <section id="view-photo" class="view view-scroll" data-view="photo" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Photo Stamp</h1>
           <span class="top-spacer"></span>
         </header>
@@ -338,7 +444,7 @@
 <!-- DEPTH OF COVER -->
       <section id="view-cover" class="view view-scroll" data-view="cover" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Depth of Cover</h1>
           <span class="top-spacer"></span>
         </header>
@@ -348,7 +454,7 @@
       <!-- 811 / LOCATE -->
       <section id="view-locate" class="view view-scroll" data-view="locate" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>811 / Locate</h1>
           <span class="top-spacer"></span>
         </header>
@@ -358,7 +464,7 @@
       <!-- DAILY TRENCH CARD -->
       <section id="view-trench-card" class="view view-scroll" data-view="trench-card" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Daily Trench Card</h1>
           <span class="top-spacer"></span>
         </header>
@@ -368,7 +474,7 @@
       <!-- PRESSURE LOG -->
       <section id="view-pressure" class="view view-scroll" data-view="pressure" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Pressure / Soap</h1>
           <span class="top-spacer"></span>
         </header>
@@ -378,7 +484,7 @@
       <!-- CONFINED TIMER -->
       <section id="view-confined" class="view view-scroll" data-view="confined" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Confined Timer</h1>
           <span class="top-spacer"></span>
         </header>
@@ -388,7 +494,7 @@
       <!-- EMERGENCY -->
       <section id="view-emergency" class="view view-scroll" data-view="emergency" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="more">←</button>
           <h1>Emergency</h1>
           <span class="top-spacer"></span>
         </header>
@@ -400,7 +506,7 @@
       <!-- DAILY PROGRESS REPORT -->
       <section id="view-daily" class="view view-scroll" data-view="daily" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="reports">←</button>
           <h1>Daily Report</h1>
           <span class="top-spacer"></span>
         </header>
@@ -410,7 +516,7 @@
       <!-- SCOPE OF WORK -->
       <section id="view-scope" class="view view-scroll" data-view="scope" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="reports">←</button>
           <h1>Scope of Work</h1>
           <span class="top-spacer"></span>
         </header>
@@ -421,7 +527,7 @@
       <!-- STATION LOCATOR -->
       <section id="view-station" class="view view-scroll" data-view="station" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Station Locator</h1>
           <span class="top-spacer"></span>
         </header>
@@ -431,7 +537,7 @@
       <!-- WEATHER RADAR -->
       <section id="view-weather" class="view view-scroll" data-view="weather" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Weather Radar</h1>
           <span class="top-spacer"></span>
         </header>
@@ -442,7 +548,7 @@
       <!-- BELL HOLE -->
       <section id="view-bellhole" class="view view-scroll" data-view="bellhole" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
           <h1>Bell Hole</h1>
           <span class="top-spacer"></span>
         </header>
@@ -452,7 +558,7 @@
       <!-- MITTI (SAFETYCULTURE) -->
       <section id="view-mitti" class="view view-scroll" data-view="mitti" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
           <h1>Mitti</h1>
           <span class="top-spacer"></span>
         </header>
@@ -462,13 +568,36 @@
       <!-- LOOKUPS -->
       <section id="view-lookups" class="view view-scroll" data-view="lookups" hidden>
         <header class="top-bar">
-          <button type="button" class="back-btn" data-nav="home">←</button>
+          <button type="button" class="back-btn" data-nav="more">←</button>
           <h1>Lookups</h1>
           <span class="top-spacer"></span>
         </header>
         <div class="tool-body" id="lookups-root"></div>
       </section>
     </div>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button type="button" class="bottom-nav-btn is-active" data-nav="home">
+        <span class="bottom-nav-icon" aria-hidden="true">⌂</span>
+        <span>Home</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="projects">
+        <span class="bottom-nav-icon" aria-hidden="true">▣</span>
+        <span>Projects</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="inspect">
+        <span class="bottom-nav-icon" aria-hidden="true">📐</span>
+        <span>Inspect</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="reports">
+        <span class="bottom-nav-icon" aria-hidden="true">▤</span>
+        <span>Reports</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="more">
+        <span class="bottom-nav-icon" aria-hidden="true">☰</span>
+        <span>More</span>
+      </button>
+    </nav>
 
     <dialog id="info-dialog">
       <form method="dialog" class="dialog-body">
@@ -481,6 +610,8 @@
           <strong>Educational / field reference only.</strong> Not engineering advice. Not a substitute for a
           competent person, site-specific classification, protective systems, or applicable OSHA / local rules.
           Confirm clearances and cover mins against your company standards and codes.
+          Compliance screens (projects, OQ, crew, Start of Day) are on-device records only — not ISNetworld, Veriforce, or Mitti API integrations.
+          Always follow the operator SOW, approved procedures, and applicable regulation.
         </p>
         <p class="howto">Install via Add to Home Screen for offline use after the first visit. Camera and motion need HTTPS.</p>
         <button type="submit" class="primary-btn">Got it</button>
