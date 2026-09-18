@@ -65,7 +65,8 @@ body {
 
 body.view-home,
 body.view-scroll {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   user-select: text;
 }
 
@@ -204,12 +205,13 @@ body.view-slope {
 
 .hub-body,
 .tool-body {
-  padding: 14px 14px 96px;
+  padding: 14px 14px calc(108px + var(--safe-bottom));
   display: flex;
   flex-direction: column;
   gap: 18px;
   min-width: 0;
   overflow-x: hidden;
+  overflow-wrap: anywhere;
 }
 
 .disclaimer-banner {
@@ -348,6 +350,7 @@ body.view-slope {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .hub-title {
@@ -355,6 +358,7 @@ body.view-slope {
   font-size: 0.98rem;
   letter-spacing: -0.01em;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .hub-desc {
@@ -1033,6 +1037,8 @@ dialog::backdrop {
   flex-direction: column;
   gap: 12px;
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .card h2,
@@ -1195,6 +1201,12 @@ dialog::backdrop {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.list-item strong {
+  overflow-wrap: anywhere;
 }
 
 .list-item .meta {
@@ -1986,6 +1998,7 @@ a.mitti-open-btn {
 .bottom-nav-btn {
   min-height: 48px;
   min-width: 0;
+  max-width: 100%;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -1998,6 +2011,14 @@ a.mitti-open-btn {
   font-weight: 800;
   letter-spacing: 0.01em;
   padding: 4px 2px;
+  overflow: hidden;
+}
+
+.bottom-nav-btn > span:not(.bottom-nav-icon) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .bottom-nav-icon {
@@ -2030,9 +2051,8 @@ a.mitti-open-btn {
   letter-spacing: 0.03em;
   text-transform: uppercase;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
   vertical-align: middle;
 }
 
@@ -2061,18 +2081,23 @@ a.mitti-open-btn {
 }
 
 .sticky-save {
-  position: sticky;
-  bottom: calc(var(--nav-h) + var(--safe-bottom) + 6px);
-  z-index: 8;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 20px);
+  max-width: 460px;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 10px 10px 8px;
-  margin: 0 -10px;
-  background: rgba(11, 18, 32, 0.94);
+  margin: 0;
+  background: rgba(11, 18, 32, 0.96);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
 }
 
 .sticky-save .primary-btn {

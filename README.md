@@ -45,6 +45,9 @@ Open the printed URL on your **phone** (same Wi‑Fi), or use a tunnel. Camera /
 ```bash
 npm run build    # output in dist/
 npm run preview  # serve the production build
+npm run lint     # minimal eslint (no-undef / syntax only)
+npx playwright install chromium
+npm test         # production build + Playwright field suite (390×844)
 ```
 
 ## Deploy
@@ -57,7 +60,7 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v21` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v22` (network-first HTML).
 
 ## Data privacy
 
@@ -65,7 +68,7 @@ Settings, checklists, and logs are stored in **localStorage on the device**. Com
 
 ## Stack
 
-Vite + vanilla HTML / CSS / JS modules. **pdf-lib** fills the Daily Progress Report AcroForm on export. Service worker + web manifest in `public/`.
+Vite + vanilla HTML / CSS / JS modules. **pdf-lib** fills the Daily Progress Report AcroForm on export. Service worker + web manifest in `public/`. Playwright (`e2e/`) covers Phase 0/1 field flows at iPhone width.
 
 ## License
 
