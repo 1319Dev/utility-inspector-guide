@@ -54,6 +54,7 @@ export async function mountStartOfDay(root) {
       <h3>Start of Day</h3>
       <p class="muted">${project ? esc(projectLabel(project)) : 'No active project'} · ${esc(today)}</p>
       <div id="sod-result" class="result-box"></div>
+      <button type="button" class="primary-btn" id="sod-save-top">Save Start of Day</button>
       ${
         crew
           ? `<p class="muted">Crew: ${esc(String(crew.results?.workers ?? crew.crew?.length ?? 0))} workers · ${
@@ -113,7 +114,10 @@ export async function mountStartOfDay(root) {
     if (el) el.textContent = msg || '';
   };
 
-  root.querySelector('#sod-save').addEventListener('click', async () => {
+  root.querySelector('#sod-save').addEventListener('click', saveSod);
+  root.querySelector('#sod-save-top')?.addEventListener('click', saveSod);
+
+  async function saveSod() {
     const miss = incomplete();
     const ready = miss.length === 0;
     const reason = root.querySelector('#sod-reason')?.value.trim() || '';
@@ -154,7 +158,7 @@ export async function mountStartOfDay(root) {
     } catch (err) {
       status(err?.message || 'Save failed.');
     }
-  });
+  }
 
   function paintHist(latest) {
     const list = latest ? [latest, ...rows.filter((r) => r.id !== latest.id)] : rows;

@@ -204,7 +204,7 @@ body.view-slope {
 
 .hub-body,
 .tool-body {
-  padding: 14px 14px 20px;
+  padding: 14px 14px 96px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -2062,13 +2062,17 @@ a.mitti-open-btn {
 
 .sticky-save {
   position: sticky;
-  bottom: 8px;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 6px);
   z-index: 8;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 0 4px;
-  background: linear-gradient(180deg, transparent, var(--bg) 28%);
+  padding: 10px 10px 8px;
+  margin: 0 -10px;
+  background: rgba(11, 18, 32, 0.94);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .sticky-save .primary-btn {

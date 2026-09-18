@@ -120,6 +120,7 @@ export async function mountCrewDay(root) {
       <div class="field"><label>Add from personnel</label>
         <select id="crew-add">${optionList(workerOpts, '')}</select>
       </div>
+      <button type="button" class="primary-btn" id="crew-verify-top">All OQs Verified</button>
       <p class="muted">Inspector: ${esc(s.inspectorName || 'set name in Emergency / More')}</p>
     </div>
     <div id="crew-roster"></div>
@@ -161,7 +162,10 @@ export async function mountCrewDay(root) {
     if (el) el.textContent = msg || '';
   };
 
-  root.querySelector('#crew-verify').addEventListener('click', async () => {
+  root.querySelector('#crew-verify').addEventListener('click', verifyCrew);
+  root.querySelector('#crew-verify-top')?.addEventListener('click', verifyCrew);
+
+  async function verifyCrew() {
     roster = roster.map(evalMember);
     const issues = roster.filter((m) => !m.ok);
     const exceptions = root.querySelector('#crew-ex').value.trim();
@@ -203,7 +207,7 @@ export async function mountCrewDay(root) {
     } catch (err) {
       status(err?.message || 'Save failed.');
     }
-  });
+  }
 
   function paintHist(latest) {
     const list = latest ? [latest, ...crewDays.filter((c) => c.id !== latest.id)] : crewDays;

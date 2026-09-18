@@ -166,6 +166,7 @@ export async function mountOqEdit(root) {
     ${complianceNote()}
     <div class="card">
       <h3>${existing ? 'OQ verification' : 'New OQ verification'}</h3>
+      <button type="button" class="primary-btn" id="oq-save-top">Save verification</button>
       <p class="muted">Proof upload is optional. Status colors: qualified green, expiring yellow, expired / not qualified red, unable to verify gray.</p>
       <div class="field"><label>Worker</label>
         <select id="oq-worker">${optionList(workerOpts, rec.workerId)}</select>
@@ -324,7 +325,10 @@ export async function mountOqEdit(root) {
     }
   });
 
-  root.querySelector('#oq-save').addEventListener('click', async () => {
+  root.querySelector('#oq-save').addEventListener('click', saveOq);
+  root.querySelector('#oq-save-top')?.addEventListener('click', saveOq);
+
+  async function saveOq() {
     const data = collect();
     if (!data.workerId && !data.workerName) {
       status('Worker is required.');
@@ -343,7 +347,7 @@ export async function mountOqEdit(root) {
     } catch (err) {
       status(err?.message || 'Save failed.');
     }
-  });
+  }
 
   root.querySelector('#oq-del')?.addEventListener('click', async () => {
     if (!heldId) return;

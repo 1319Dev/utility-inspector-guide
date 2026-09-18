@@ -159,6 +159,7 @@ export async function mountWorkerEdit(root) {
     ${complianceNote()}
     <div class="card">
       <h3>${existing ? 'Edit worker' : 'New worker'}</h3>
+      <button type="button" class="primary-btn" id="w-save-top">${existing ? 'Save worker' : 'Create worker'}</button>
       <div class="field"><label>Name</label><input id="w-name" value="${esc(w.name)}" autocomplete="name" /></div>
       <div class="field-row">
         <div class="field"><label>Company</label><input id="w-co" value="${esc(w.company)}" /></div>
@@ -294,7 +295,10 @@ export async function mountWorkerEdit(root) {
     }
   });
 
-  root.querySelector('#w-save').addEventListener('click', async () => {
+  root.querySelector('#w-save').addEventListener('click', saveWorker);
+  root.querySelector('#w-save-top')?.addEventListener('click', saveWorker);
+
+  async function saveWorker() {
     const data = collect();
     if (!data.name) {
       status('Name is required.');
@@ -308,7 +312,7 @@ export async function mountWorkerEdit(root) {
     } catch (err) {
       status(err?.message || 'Save failed.');
     }
-  });
+  }
 
   root.querySelector('#w-del')?.addEventListener('click', async () => {
     if (!heldId) return;

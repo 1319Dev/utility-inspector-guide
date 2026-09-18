@@ -102,6 +102,7 @@ export async function mountProjectEdit(root) {
     ${complianceNote()}
     <div class="card">
       <h3>${existing ? 'Edit project' : 'New project'}</h3>
+      <button type="button" class="primary-btn" id="p-save-top">${existing ? 'Save project' : 'Create project'}</button>
       <div class="field"><label>Project name</label><input id="p-name" value="${esc(p.name)}" autocomplete="off" /></div>
       <div class="field"><label>Operator / client</label><input id="p-operator" value="${esc(p.operator)}" /></div>
       <div class="field"><label>Inspection company</label><input id="p-inspco" value="${esc(p.inspectionCompany)}" /></div>
@@ -306,7 +307,10 @@ export async function mountProjectEdit(root) {
     status('Document added — tap Save project to persist the list.');
   });
 
-  root.querySelector('#p-save')?.addEventListener('click', async () => {
+  root.querySelector('#p-save')?.addEventListener('click', saveProject);
+  root.querySelector('#p-save-top')?.addEventListener('click', saveProject);
+
+  async function saveProject() {
     try {
       const data = collect();
       if (!data.name) {
@@ -321,7 +325,7 @@ export async function mountProjectEdit(root) {
     } catch (err) {
       status(err?.message || 'Save failed.');
     }
-  });
+  }
 
   root.querySelector('#p-active')?.addEventListener('click', async () => {
     if (heldId) {
