@@ -1855,3 +1855,25 @@ button.list-item.sow-hit:active {
   border-color: var(--type-b);
   color: #fde68a;
 }
+
+.mitti-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+a.mitti-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  min-height: 64px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mitti-note {
+  margin: 0;
+}
