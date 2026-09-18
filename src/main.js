@@ -15,6 +15,7 @@ import { mountDaily } from './tools/dailyReport.js';
 import { mountStation, leaveStation } from './tools/stationLocator.js';
 import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
 import { mountBellHole, leaveBellHole } from './tools/bellHole.js';
+import { mountMitti } from './tools/mitti.js';
 
 const VIEWS = [
   'home',
@@ -32,6 +33,7 @@ const VIEWS = [
   'station',
   'weather',
   'bellhole',
+  'mitti',
 ];
 
 const mounted = new Set();
@@ -92,6 +94,7 @@ function ensureMounted(name) {
     station: ['station-root', mountStation],
     weather: ['weather-root', mountWeather],
     bellhole: ['bellhole-root', mountBellHole],
+    mitti: ['mitti-root', mountMitti],
   };
   const entry = map[name];
   if (!entry) return;
