@@ -2,16 +2,8 @@
  * Daily Progress Report — digital form matching company PDF template
  */
 import { PDFDocument, StandardFonts } from 'pdf-lib';
-import {
-  load,
-  save,
-  loadSettings,
-  saveSettings,
-  downloadText,
-  downloadBlob,
-  formatStamp,
-  uid,
-} from '../store.js';
+import { load, save, loadSettings, saveSettings, downloadText, downloadBlob, formatStamp, uid } from '../store.js';
+import { getTodaysCrewDay } from './crewDay.js';
 
 export const PHASES = [
   'Right-of-Way Clearing',
@@ -460,6 +452,7 @@ export function mountDaily(el, preload = null) {
   el.dataset.reportId = draft.id || uid();
   el.innerHTML = `
     <p class="muted">Fill the daily progress report on your phone. Totals and hours auto-calc. <strong>Save PDF</strong> fills the company form. Not a signed legal original.</p>
+    <div id="dr-oq-hook"></div>
     <div class="card">
       <h3>Header</h3>
       <div class="field-row">
@@ -644,4 +637,33 @@ export function mountDaily(el, preload = null) {
   });
 
   renderHistoryList(el);
+
+  fillOqHook(el);
+}
+
+async function fillOqHook(el) {
+  const box = el.querySelector('#dr-oq-hook');
+  if (!box) return;
+  try {
+    const crew = await getTodaysCrewDay();
+    if (!crew) {
+      box.innerHTML = '';
+      return;
+    }
+    const n = crew.results?.workers ?? crew.crew?.length ?? 0;
+    const when = crew.verifiedAt || crew.date || '';
+    if (crew.allVerified) {
+      box.innerHTML = `<div class="card oq-hook-card">
+        <h3>OQs verified</h3>
+        <p class="muted">${n} workers on today’s crew · ${crew.inspector || 'inspector'} · ${when}. On-device record only — not a live OQ network feed.</p>
+      </div>`;
+    } else {
+      box.innerHTML = `<div class="card oq-hook-card">
+        <h3>Crew verification on file</h3>
+        <p class="muted">${n} workers · exceptions documented. Open Crew Check under Reports for details.</p>
+      </div>`;
+    }
+  } catch {
+    box.innerHTML = '';
+  }
 }

@@ -1,8 +1,8 @@
 # Utility Inspector Guide
 
-Mobile-first **progressive web app** — a field toolkit for utility inspectors. Hub home screen with glove-friendly tiles for trench slope overlays, stamped photos, bell hole checklist, Station Locator (KMZ live/pin), Scope of Work PDF search with page highlights, daily progress report, depth of cover, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (keyless NEXRAD / optional RainViewer + Blitzortung lightning), emergency contacts, Mitti (SafetyCulture) launcher, and material lookups.
+Mobile-first **progressive web app** — a field toolkit for utility inspectors. Home dashboard plus Inspect tiles for trench slope overlays, stamped photos, bell hole checklist, Station Locator (KMZ live/pin), Scope of Work PDF search with page highlights, daily progress report, depth of cover, 811 checklist, daily trench card, pressure log, confined-space timer, Weather Radar (keyless NEXRAD / optional RainViewer + Blitzortung lightning), emergency contacts, Mitti (SafetyCulture) launcher, and material lookups. Phase 0/1 adds on-device projects, personnel, OQ verification, crew checks, and Start of Day.
 
-> **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes.
+> **Educational / field reference only.** Not engineering advice. A competent person must classify soil and select protective systems per OSHA and your employer’s program. Confirm clearances and cover mins against company standards and codes. Always follow the operator SOW, approved procedures, and applicable regulation.
 
 ## Tools
 
@@ -17,10 +17,21 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 9. **Emergency** — editable contacts + nearest ER note (on-device)
 10. **Lookups** — PE/steel size tables + material ID cheat sheet (PE, steel, DI, PVC, copper)
 11. **Scope of Work** — upload PDF / TXT / MD / DOCX; **preview pages**; search; tap a hit to open that PDF page with highlights (IndexedDB)
-12. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export
+12. **Daily Report** — digital Daily Progress Report (phases, footage, hours); **Save PDF** fills company AcroForm via pdf-lib; also HTML/text export. If a CrewDay exists for today + active project, shows **OQs verified** (on-device).
 13. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); mode + station saved for Photo Stamp / Daily Report / Bell Hole autofill
 14. **Weather Radar** — WeatherBug-style Leaflet map: free keyless NOAA NEXRAD via Iowa State Mesonet (default), optional RainViewer global, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
 15. **Mitti** — one-tap launcher to the official SafetyCulture / Mitti web app (`https://app.safetyculture.com/`). Opens the installed mobile app on iPhone when available. This PWA does not replace Mitti and does not call the Mitti API.
+
+## Compliance (Phase 0 + 1)
+
+On-device records for **projects**, **personnel**, **OQ verification**, **daily crew checks**, and **Start of Day**. Bottom nav: Home · Projects · Inspect · Reports · More.
+
+- **Not** ISNetworld, Veriforce, or Mitti API integrations. OQ “sources” including those names are **manual labels** plus optional proof attach.
+- IndexedDB stores larger records/attachments. Settings still use `localStorage` (`src/store.js`).
+- Sync banner is honest local-only (ONLINE / OFFLINE – SAVED LOCALLY / SYNCING / SYNC COMPLETE). A pending queue is ready for a future backend.
+- Always follow the operator SOW, approved procedures, and applicable regulation.
+
+Deferred: welding logs, hydro, NCR, supervisor dashboard, real cloud sync, Crossing Sketch (separate PR).
 
 ## Quick start
 
@@ -46,11 +57,11 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v19` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v21` (network-first HTML).
 
 ## Data privacy
 
-Settings, checklists, and logs are stored in **localStorage on the device**. Uploaded Scope of Work text and Station Locator KMZ parses are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
+Settings, checklists, and logs are stored in **localStorage on the device**. Compliance records (projects, workers, OQ, crew days, Start of Day) and their attachments, plus uploaded Scope of Work text and Station Locator KMZ parses, are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
 
 ## Stack
 

@@ -15,8 +15,21 @@ export function load(key, fallback = null) {
 export function save(key, value) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
-  } catch {
-    /* quota / private mode */
+  } catch (err) {
+    if (typeof window !== 'undefined') {
+      const quota = err?.name === 'QuotaExceededError' || /quota/i.test(String(err?.message || err));
+      window.dispatchEvent(
+        new CustomEvent('uig:storage-error', {
+          detail: {
+            key,
+            err,
+            message: quota
+              ? 'Save failed — device storage quota. Settings were not written.'
+              : 'Save failed. Settings were not written.',
+          },
+        })
+      );
+    }
   }
 }
 
@@ -33,6 +46,7 @@ export function loadSettings() {
     slopeGuideSeen: false,
     currentStation: '',
     stationMode: 'live', // 'live' | 'pin' — Station Locator preference
+    activeProjectId: null,
   });
 }
 

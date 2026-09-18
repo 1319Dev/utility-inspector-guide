@@ -16,9 +16,30 @@ import { mountStation, leaveStation } from './tools/stationLocator.js';
 import { mountWeather, leaveWeather, enterWeather } from './tools/weatherRadar.js';
 import { mountBellHole, leaveBellHole } from './tools/bellHole.js';
 import { mountMitti } from './tools/mitti.js';
+import { mountProjects, mountProjectEdit } from './tools/projects.js';
+import { mountPersonnel, mountWorkerEdit } from './tools/personnel.js';
+import { mountOqCenter, mountOqEdit } from './tools/oqCenter.js';
+import { mountCrewDay } from './tools/crewDay.js';
+import { mountStartOfDay } from './tools/startOfDay.js';
+import { mountHome } from './ui/home.js';
+import { mountReports, mountMore } from './ui/reports.js';
+import { mountSyncBanner } from './ui/syncBanner.js';
+import { bindShowView, highlightTab } from './ui/navigate.js';
+import { ensureDb, flushPendingQueue, listPendingQueue } from './data/index.js';
 
 const VIEWS = [
   'home',
+  'inspect',
+  'projects',
+  'project',
+  'reports',
+  'more',
+  'personnel',
+  'worker',
+  'oq',
+  'oq-edit',
+  'crew',
+  'start-of-day',
   'slope',
   'photo',
   'cover',
@@ -35,6 +56,20 @@ const VIEWS = [
   'bellhole',
   'mitti',
 ];
+
+const REMOUNT = new Set([
+  'home',
+  'projects',
+  'project',
+  'reports',
+  'more',
+  'personnel',
+  'worker',
+  'oq',
+  'oq-edit',
+  'crew',
+  'start-of-day',
+]);
 
 const mounted = new Set();
 let current = 'home';
@@ -66,11 +101,14 @@ function showView(name) {
 
   if (name === 'slope') enterSlope();
   else {
-    ensureMounted(name);
-    if (name === 'weather') enterWeather();
+    const done = ensureMounted(name);
+    Promise.resolve(done).then(() => {
+      if (name === 'weather') enterWeather();
+    });
   }
 
   current = name;
+  highlightTab(name);
   const hash = name === 'home' ? '' : `#${name}`;
   if (location.hash.replace(/^#/, '') !== (hash ? name : '')) {
     history.replaceState(null, '', hash || location.pathname + location.search);
@@ -79,8 +117,18 @@ function showView(name) {
 }
 
 function ensureMounted(name) {
-  if (mounted.has(name)) return;
   const map = {
+    home: ['home-root', mountHome],
+    projects: ['projects-root', mountProjects],
+    project: ['project-root', mountProjectEdit],
+    reports: ['reports-root', mountReports],
+    more: ['more-root', mountMore],
+    personnel: ['personnel-root', mountPersonnel],
+    worker: ['worker-root', mountWorkerEdit],
+    oq: ['oq-root', mountOqCenter],
+    'oq-edit': ['oq-edit-root', mountOqEdit],
+    crew: ['crew-root', mountCrewDay],
+    'start-of-day': ['sod-root', mountStartOfDay],
     photo: ['photo-root', mountPhoto],
     cover: ['cover-root', mountCover],
     locate: ['locate-root', mountLocate],
@@ -100,8 +148,18 @@ function ensureMounted(name) {
   if (!entry) return;
   const el = document.getElementById(entry[0]);
   if (!el) return;
-  entry[1](el);
+  if (!REMOUNT.has(name) && mounted.has(name)) return;
   mounted.add(name);
+  try {
+    const result = entry[1](el);
+    return Promise.resolve(result).catch((err) => {
+      console.error(err);
+      el.innerHTML = `<p class="error">Could not open this screen. ${String(err?.message || err)}</p>`;
+    });
+  } catch (err) {
+    console.error(err);
+    el.innerHTML = `<p class="error">Could not open this screen. ${String(err?.message || err)}</p>`;
+  }
 }
 
 function routeFromHash() {
@@ -139,6 +197,12 @@ document.addEventListener('click', (e) => {
 document.getElementById('btn-info')?.addEventListener('click', () => {
   document.getElementById('info-dialog').showModal();
 });
+
+bindShowView(showView);
+mountSyncBanner();
+ensureDb()
+  .then(() => flushPendingQueue(listPendingQueue))
+  .catch(() => {});
 
 window.addEventListener('hashchange', routeFromHash);
 routeFromHash();
