@@ -2264,6 +2264,11 @@ button.list-btn {
   border-color: var(--accent);
 }
 
+#mat-map-card[hidden],
+#mat-detail[hidden] {
+  display: none !important;
+}
+
 @media (max-width: 400px) {
   .hub-title,
   .dash-project-name {
