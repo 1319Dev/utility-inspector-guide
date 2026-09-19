@@ -76,6 +76,7 @@ body.view-slope {
 }
 
 #app {
+  width: 100%;
   min-height: 100%;
   min-height: 100dvh;
   max-width: 480px;
@@ -105,7 +106,8 @@ body.view-slope {
   margin: 0 auto;
 }
 
-.view-scroll {
+/* Scoped to .view — body also gets view-scroll for overflow, and must stay block. */
+.view.view-scroll {
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--banner-h) - var(--safe-top) - var(--nav-h) - var(--safe-bottom));
@@ -2234,6 +2236,39 @@ button.list-btn {
 
 .crew-member .check-item {
   align-items: center;
+}
+
+.mat-qty-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.mat-qty-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: var(--panel-inset);
+  border: 1px solid var(--line);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.mat-qty-cell strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mat-line.is-open {
+  border-color: var(--accent);
+}
+
+#mat-map-card[hidden],
+#mat-detail[hidden] {
+  display: none !important;
 }
 
 @media (max-width: 400px) {

@@ -6,7 +6,7 @@ import { RECORD_STORES } from './constants.js';
 import { reportQuotaError, reportSyncState } from './sync.js';
 
 export const DB_NAME = 'uig-compliance';
-export const DB_VER = 1;
+export const DB_VER = 2; // v2 adds packingLists, materials, materialCheckins
 
 const ALL_STORES = [...RECORD_STORES, 'attachments', 'syncQueue', 'meta'];
 

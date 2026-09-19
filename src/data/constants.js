@@ -17,6 +17,9 @@ export const COLLECTIONS = {
   attachments: { key: 'attachments', implemented: true },
   syncQueue: { key: 'syncQueue', implemented: true },
   meta: { key: 'meta', implemented: true },
+  packingLists: { key: 'packingLists', implemented: true },
+  materials: { key: 'materials', implemented: true },
+  materialCheckins: { key: 'materialCheckins', implemented: true },
   // Future phases — registered only, no UI in this increment
   welds: { key: 'welds', implemented: false, stub: true },
   hydroTests: { key: 'hydroTests', implemented: false, stub: true },
@@ -31,6 +34,9 @@ export const RECORD_STORES = [
   'oqRecords',
   'crewDays',
   'startOfDayChecks',
+  'packingLists',
+  'materials',
+  'materialCheckins',
 ];
 
 export const CREW_ROLES = [

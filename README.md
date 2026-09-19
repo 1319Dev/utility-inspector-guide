@@ -21,6 +21,7 @@ Mobile-first **progressive web app** — a field toolkit for utility inspectors.
 13. **Station Locator** — upload Google Earth KMZ/KML; **Live estimate** (smoothed interpolated station while walking) or **Pin only** (nearest 100-ft placemark); mode + station saved for Photo Stamp / Daily Report / Bell Hole autofill
 14. **Weather Radar** — WeatherBug-style Leaflet map: free keyless NOAA NEXRAD via Iowa State Mesonet (default), optional RainViewer global, GPS pin + 10/30 mi rings, live Blitzortung lightning, NWS warning overlay
 15. **Mitti** — one-tap launcher to the official SafetyCulture / Mitti web app (`https://app.safetyculture.com/`). Opens the installed mobile app on iPhone when available. This PWA does not replace Mitti and does not call the Mitti API.
+16. **Materials Check-In** — import a freeform packing list (.xlsx / .xls / CSV), add lines by hand, check items in (qty, time, location, OK/short/damaged), keep an on-device IndexedDB log scoped to the active project, and export a default two-sheet Excel workbook. Company-template Excel fill waits on a user-supplied file.
 
 ## Compliance (Phase 0 + 1)
 
@@ -60,15 +61,15 @@ Repo path can remain `trench-slope-guide`; Vite uses `base: './'`. Live example:
 
 `https://garrett1319.github.io/trench-slope-guide/`
 
-On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v22` (network-first HTML).
+On your phone: open the URL → **Add to Home Screen**. Service worker cache is `utility-inspector-guide-v23` (network-first HTML).
 
 ## Data privacy
 
-Settings, checklists, and logs are stored in **localStorage on the device**. Compliance records (projects, workers, OQ, crew days, Start of Day) and their attachments, plus uploaded Scope of Work text and Station Locator KMZ parses, are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
+Settings, checklists, and logs are stored in **localStorage on the device**. Compliance records (projects, workers, OQ, crew days, Start of Day, packing lists, material lines, check-ins) and their attachments, plus uploaded Scope of Work text and Station Locator KMZ parses, are stored in **IndexedDB on the device**. Nothing is uploaded to a server by the app.
 
 ## Stack
 
-Vite + vanilla HTML / CSS / JS modules. **pdf-lib** fills the Daily Progress Report AcroForm on export. Service worker + web manifest in `public/`. Playwright (`e2e/`) covers Phase 0/1 field flows at iPhone width.
+Vite + vanilla HTML / CSS / JS modules. **pdf-lib** fills the Daily Progress Report AcroForm on export. **SheetJS (`xlsx`)** reads packing lists and writes the default Materials Check-In workbook. Service worker + web manifest in `public/`. Playwright (`e2e/`) covers Phase 0/1 field flows at iPhone width.
 
 ## License
 
