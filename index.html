@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="uig-release-sha" content="aeb221d9de273c8c1232f02e07afe81737dfab66">
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b1220" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="Utility Inspector Guide — field toolkit: trench slope, photo stamp, Station Locator, Scope of Work search, depth of cover, 811 checklist, and more. Educational use only."
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <title>Utility Inspector Guide</title>
+    <script type="module" crossorigin src="./assets/index-DWfuxA4k.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-st9nJCxy.css">
+  </head>
+  <body class="view-home">
+    <div id="sync-banner" class="sync-banner" data-state="online" role="status">ONLINE</div>
+    <div id="app">
+      <!-- HOME DASHBOARD -->
+      <section id="view-home" class="view view-scroll" data-view="home">
+        <header class="top-bar home-bar">
+          <div class="brand">
+            <p class="brand-kicker">Field toolkit</p>
+            <h1>Utility Inspector</h1>
+            <p class="tagline">On-device · educational reference</p>
+          </div>
+          <button type="button" id="btn-info" class="icon-btn" aria-label="Disclaimer and help">?</button>
+        </header>
+        <div class="hub-body" id="home-root"></div>
+      </section>
+
+      <!-- INSPECT TOOL GRID (legacy hub tiles) -->
+      <section id="view-inspect" class="view view-scroll" data-view="inspect" hidden>
+        <header class="top-bar">
+          <span class="top-spacer"></span>
+          <h1>Inspect</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="hub-body">
+          <p class="compliance-note" role="note">Always follow the operator SOW, approved procedures, and applicable regulation.</p>
+
+          <section class="hub-section" aria-labelledby="hub-inspect">
+            <div class="hub-section-head">
+              <h2 id="hub-inspect" class="hub-section-title">Inspect</h2>
+              <p class="hub-section-sub">Measure · verify · locate</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Inspect tools">
+              <button type="button" class="hub-tile" data-nav="slope" data-tone="amber">
+                <span class="hub-icon" aria-hidden="true">📐</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Trench Slope</span>
+                  <span class="hub-desc">Camera overlay + Measure</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="bellhole" data-tone="violet">
+                <span class="hub-icon" aria-hidden="true">🕳️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Bell Hole</span>
+                  <span class="hub-desc">Camera · checklist approval</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="cover" data-tone="sky">
+                <span class="hub-icon" aria-hidden="true">⬇️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Depth of Cover</span>
+                  <span class="hub-desc">Probe/tape or phone vs min</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="station" data-tone="lime">
+                <span class="hub-icon" aria-hidden="true">📍</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Station Locator</span>
+                  <span class="hub-desc">Live estimate · pin snap</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-docs">
+            <div class="hub-section-head">
+              <h2 id="hub-docs" class="hub-section-title">Capture &amp; report</h2>
+              <p class="hub-section-sub">Photos · paperwork · scope</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Capture and report tools">
+              <button type="button" class="hub-tile" data-nav="photo" data-tone="cyan">
+                <span class="hub-icon" aria-hidden="true">📷</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Photo Stamp</span>
+                  <span class="hub-desc">GPS · station · pipe data</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="daily" data-tone="orange">
+                <span class="hub-icon" aria-hidden="true">📝</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Daily Report</span>
+                  <span class="hub-desc">Progress · footage · hours</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="scope" data-tone="slate">
+                <span class="hub-icon" aria-hidden="true">📄</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Scope of Work</span>
+                  <span class="hub-desc">Preview · search · highlight</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="pressure" data-tone="teal">
+                <span class="hub-icon" aria-hidden="true">⏱️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Pressure / Soap</span>
+                  <span class="hub-desc">Test log + export</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="materials" data-tone="lime">
+                <span class="hub-icon" aria-hidden="true">📦</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Materials Check-In</span>
+                  <span class="hub-desc">Packing list · receive · Excel</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-safety">
+            <div class="hub-section-head">
+              <h2 id="hub-safety" class="hub-section-title">Safety</h2>
+              <p class="hub-section-sub">Locate · trench · weather · SOS</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Safety tools">
+              <button type="button" class="hub-tile" data-nav="locate" data-tone="rose">
+                <span class="hub-icon" aria-hidden="true">🎨</span>
+                <span class="hub-copy">
+                  <span class="hub-title">811 / Locate</span>
+                  <span class="hub-desc">APWA colors + checklist</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="trench-card" data-tone="amber">
+                <span class="hub-icon" aria-hidden="true">📋</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Daily Trench Card</span>
+                  <span class="hub-desc">Soil · protect · egress</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="confined" data-tone="violet">
+                <span class="hub-icon" aria-hidden="true">⏳</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Confined Timer</span>
+                  <span class="hub-desc">Atmosphere + interval alarm</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="weather" data-tone="sky">
+                <span class="hub-icon" aria-hidden="true">🌧️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Weather Radar</span>
+                  <span class="hub-desc">Free NEXRAD · lightning</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile" data-nav="mitti" data-tone="teal">
+                <span class="hub-icon" aria-hidden="true">🛡️</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Mitti</span>
+                  <span class="hub-desc">Open safety culture app</span>
+                </span>
+              </button>
+              <button type="button" class="hub-tile hub-tile-wide" data-nav="emergency" data-tone="danger">
+                <span class="hub-icon" aria-hidden="true">🚨</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Emergency</span>
+                  <span class="hub-desc">Contacts · nearest ER</span>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section class="hub-section" aria-labelledby="hub-ref">
+            <div class="hub-section-head">
+              <h2 id="hub-ref" class="hub-section-title">Reference</h2>
+              <p class="hub-section-sub">Tables · material ID</p>
+            </div>
+            <div class="hub-grid" role="navigation" aria-label="Reference tools">
+              <button type="button" class="hub-tile hub-tile-wide" data-nav="lookups" data-tone="slate">
+                <span class="hub-icon" aria-hidden="true">📘</span>
+                <span class="hub-copy">
+                  <span class="hub-title">Lookups</span>
+                  <span class="hub-desc">Pipe size · material ID cheat sheet</span>
+                </span>
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- PROJECTS -->
+      <section id="view-projects" class="view view-scroll" data-view="projects" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>Projects</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="projects-root"></div>
+      </section>
+
+      <section id="view-project" class="view view-scroll" data-view="project" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="projects" aria-label="Back to projects">←</button>
+          <h1>Project</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="project-root"></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="view-reports" class="view view-scroll" data-view="reports" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>Reports</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="reports-root"></div>
+      </section>
+
+      <!-- MORE -->
+      <section id="view-more" class="view view-scroll" data-view="more" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="home" aria-label="Back to home">←</button>
+          <h1>More</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="more-root"></div>
+      </section>
+
+      <!-- PERSONNEL -->
+      <section id="view-personnel" class="view view-scroll" data-view="personnel" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
+          <h1>Personnel</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="personnel-root"></div>
+      </section>
+
+      <section id="view-worker" class="view view-scroll" data-view="worker" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="personnel" aria-label="Back">←</button>
+          <h1>Worker</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="worker-root"></div>
+      </section>
+
+      <!-- OQ -->
+      <section id="view-oq" class="view view-scroll" data-view="oq" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
+          <h1>OQ Center</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="oq-root"></div>
+      </section>
+
+      <section id="view-oq-edit" class="view view-scroll" data-view="oq-edit" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="oq" aria-label="Back">←</button>
+          <h1>OQ Verify</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="oq-edit-root"></div>
+      </section>
+
+      <!-- CREW -->
+      <section id="view-crew" class="view view-scroll" data-view="crew" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports" aria-label="Back">←</button>
+          <h1>Crew Check</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="crew-root"></div>
+      </section>
+
+      <!-- START OF DAY -->
+      <section id="view-start-of-day" class="view view-scroll" data-view="start-of-day" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports" aria-label="Back">←</button>
+          <h1>Start of Day</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="sod-root"></div>
+      </section>
+
+      <!-- TRENCH SLOPE -->
+      <section id="view-slope" class="view view-fill" data-view="slope" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect" aria-label="Back to inspect">←</button>
+          <h1>Trench Slope</h1>
+          <button type="button" class="icon-btn btn-tool-info" data-info="slope" aria-label="Slope help">?</button>
+        </header>
+        <main class="stage">
+          <video id="camera" playsinline muted autoplay></video>
+          <canvas id="overlay" aria-hidden="true"></canvas>
+          <div id="camera-gate" class="gate">
+            <p class="gate-title">Camera access needed</p>
+            <p class="gate-body">Use the rear camera to align OSHA slope guides — match TOE (bottom) and CREST (top of cut) to the trench face.</p>
+            <button type="button" id="btn-start" class="primary-btn">Start camera</button>
+            <p id="camera-error" class="error" hidden></p>
+          </div>
+          <div class="hud-hint" id="hud-hint">Drag TOE to trench bottom · scale CREST to grade</div>
+          <div id="align-strip" class="align-strip" hidden aria-hidden="true">
+            <span class="align-step"><span class="align-num">1</span> TOE (bottom)</span>
+            <span class="align-arrow" aria-hidden="true">→</span>
+            <span class="align-step"><span class="align-num">2</span> CREST (top)</span>
+            <span class="align-arrow" aria-hidden="true">→</span>
+            <span class="align-step"><span class="align-num">3</span> Compare</span>
+          </div>
+          <div id="slope-guide-tip" class="slope-guide-tip" hidden>
+            <div class="slope-guide-card">
+              <strong class="slope-guide-title">Camera placement</strong>
+              <p class="slope-guide-lead">Stand for a <em>cross-section</em> view — looking at the trench face, not down the ditch.</p>
+              <svg class="slope-guide-diagram" viewBox="0 0 280 120" role="img" aria-label="Side diagram: ditch bottom (toe), slope face, and grade (crest)">
+                <rect x="0" y="0" width="280" height="120" rx="10" fill="rgba(10,16,28,0.9)"/>
+                <!-- grade -->
+                <line x1="12" y1="34" x2="268" y2="34" stroke="#64748b" stroke-width="2" stroke-dasharray="4 4"/>
+                <text x="18" y="26" fill="#94a3b8" font-size="10" font-weight="700">GRADE</text>
+                <!-- left spoil / cut -->
+                <path d="M40 34 L110 34 L110 100 L40 100 Z" fill="rgba(148,163,184,0.18)"/>
+                <!-- trench void -->
+                <path d="M110 34 L170 100 L110 100 Z" fill="rgba(15,23,42,0.35)"/>
+                <!-- ditch bottom -->
+                <line x1="110" y1="100" x2="250" y2="100" stroke="#fde047" stroke-width="3" stroke-dasharray="6 5"/>
+                <!-- OSHA slope face -->
+                <line x1="110" y1="100" x2="170" y2="34" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round"/>
+                <!-- toe marker -->
+                <circle cx="110" cy="100" r="6" fill="#fde047" stroke="#0f172a" stroke-width="2"/>
+                <text x="118" y="114" fill="#fde047" font-size="11" font-weight="800">TOE</text>
+                <text x="148" y="114" fill="#94a3b8" font-size="9">bottom of ditch</text>
+                <!-- crest marker -->
+                <circle cx="170" cy="34" r="6" fill="#fbbf24" stroke="#0f172a" stroke-width="2"/>
+                <text x="178" y="28" fill="#fbbf24" font-size="11" font-weight="800">CREST</text>
+                <text x="178" y="40" fill="#94a3b8" font-size="9">top of cut</text>
+                <!-- slope callout -->
+                <text x="128" y="68" fill="#fbbf24" font-size="10" font-weight="700" transform="rotate(-40 128 68)">slope face</text>
+              </svg>
+              <ol class="slope-guide-steps">
+                <li>Drag yellow <strong>TOE</strong> to the trench bottom</li>
+                <li>Scale / pinch so <strong>CREST</strong> meets grade</li>
+                <li>Compare the real wall to the colored guide</li>
+              </ol>
+              <button type="button" id="btn-slope-guide-gotit" class="primary-btn">Got it</button>
+            </div>
+          </div>
+          <div id="measure-panel" class="measure-panel" hidden>
+            <div class="measure-tip">Hold phone flat against the soil face (long edge up the slope).</div>
+            <div class="measure-readout">
+              <div class="measure-col">
+                <span class="measure-label">Measured</span>
+                <span class="measure-value" id="meas-angle">—°</span>
+              </div>
+              <div class="measure-col">
+                <span class="measure-label">Allowed max</span>
+                <span class="measure-value" id="meas-allowed">—°</span>
+              </div>
+              <div class="measure-col">
+                <span class="measure-label">Delta</span>
+                <span class="measure-value" id="meas-delta">—</span>
+              </div>
+            </div>
+            <div class="measure-status" id="meas-status" data-state="idle">Waiting for sensor…</div>
+            <p class="measure-error" id="meas-error" hidden></p>
+            <div class="measure-actions">
+              <button type="button" id="btn-freeze" class="secondary-btn" aria-pressed="false">Freeze</button>
+            </div>
+          </div>
+        </main>
+        <section class="controls" aria-label="Soil type and overlay controls">
+          <div class="soil-row" role="radiogroup" aria-label="OSHA soil type">
+            <button type="button" class="soil-btn" data-soil="A" aria-pressed="false">
+              <span class="soil-label">Type A</span>
+              <span class="soil-ratio">¾ : 1</span>
+              <span class="soil-angle">≈ 53°</span>
+            </button>
+            <button type="button" class="soil-btn active" data-soil="B" aria-pressed="true">
+              <span class="soil-label">Type B</span>
+              <span class="soil-ratio">1 : 1</span>
+              <span class="soil-angle">≈ 45°</span>
+            </button>
+            <button type="button" class="soil-btn" data-soil="C" aria-pressed="false">
+              <span class="soil-label">Type C</span>
+              <span class="soil-ratio">1½ : 1</span>
+              <span class="soil-angle">≈ 34°</span>
+            </button>
+          </div>
+          <div class="meta-row">
+            <div class="meta-chip">
+              <strong id="meta-title">Type B</strong>
+              <span id="meta-detail">H:V 1:1 · ≈45° from horizontal</span>
+            </div>
+          </div>
+          <div class="line-guide" id="line-guide" aria-label="Line guide — what each overlay line means">
+            <div class="line-guide-head">
+              <strong>Line guide</strong>
+              <button type="button" id="btn-show-guide" class="linkish-btn">Show guide</button>
+            </div>
+            <ul class="line-guide-list">
+              <li>
+                <span class="line-swatch line-swatch-toe" aria-hidden="true"></span>
+                <span><strong>TOE</strong> — yellow dashed line = bottom of ditch / trench floor (drag this)</span>
+              </li>
+              <li>
+                <span class="line-swatch line-swatch-slope" id="line-swatch-slope" aria-hidden="true"></span>
+                <span><strong>Slope face</strong> — colored line = required OSHA slope for selected soil type</span>
+              </li>
+              <li>
+                <span class="line-swatch line-swatch-crest" id="line-swatch-crest" aria-hidden="true"></span>
+                <span><strong>CREST</strong> — colored dot = top of cut where slope meets grade</span>
+              </li>
+            </ul>
+            <p class="line-guide-tip">Stand for a cross-section view: line yellow TOE up with the trench bottom, then stretch the colored face to match the wall.</p>
+          </div>
+          <div class="slider-row">
+            <label for="scale-slider">Scale</label>
+            <input id="scale-slider" type="range" min="40" max="220" value="100" />
+            <button type="button" id="btn-reset" class="secondary-btn">Reset</button>
+          </div>
+          <div class="action-row measure-row">
+            <button type="button" id="btn-measure" class="primary-btn measure-btn" aria-pressed="false">
+              Measure angle
+            </button>
+          </div>
+          <div class="action-row">
+            <button type="button" id="btn-flip" class="secondary-btn">Flip side</button>
+            <button type="button" id="btn-both" class="secondary-btn" aria-pressed="true">Both walls</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- PHOTO STAMP -->
+      <section id="view-photo" class="view view-scroll" data-view="photo" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Photo Stamp</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="photo-root"></div>
+      </section>
+
+<!-- DEPTH OF COVER -->
+      <section id="view-cover" class="view view-scroll" data-view="cover" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Depth of Cover</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="cover-root"></div>
+      </section>
+
+      <!-- 811 / LOCATE -->
+      <section id="view-locate" class="view view-scroll" data-view="locate" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>811 / Locate</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="locate-root"></div>
+      </section>
+
+      <!-- DAILY TRENCH CARD -->
+      <section id="view-trench-card" class="view view-scroll" data-view="trench-card" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Daily Trench Card</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="trench-card-root"></div>
+      </section>
+
+      <!-- MATERIALS CHECK-IN -->
+      <section id="view-materials" class="view view-scroll" data-view="materials" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Materials</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="materials-root"></div>
+      </section>
+
+      <!-- PRESSURE LOG -->
+      <section id="view-pressure" class="view view-scroll" data-view="pressure" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Pressure / Soap</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="pressure-root"></div>
+      </section>
+
+      <!-- CONFINED TIMER -->
+      <section id="view-confined" class="view view-scroll" data-view="confined" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Confined Timer</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="confined-root"></div>
+      </section>
+
+      <!-- EMERGENCY -->
+      <section id="view-emergency" class="view view-scroll" data-view="emergency" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more">←</button>
+          <h1>Emergency</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="emergency-root"></div>
+      </section>
+
+
+
+      <!-- DAILY PROGRESS REPORT -->
+      <section id="view-daily" class="view view-scroll" data-view="daily" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports">←</button>
+          <h1>Daily Report</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="daily-root"></div>
+      </section>
+
+      <!-- SCOPE OF WORK -->
+      <section id="view-scope" class="view view-scroll" data-view="scope" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="reports">←</button>
+          <h1>Scope of Work</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="scope-root"></div>
+      </section>
+
+
+      <!-- STATION LOCATOR -->
+      <section id="view-station" class="view view-scroll" data-view="station" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Station Locator</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="station-root"></div>
+      </section>
+
+      <!-- WEATHER RADAR -->
+      <section id="view-weather" class="view view-scroll" data-view="weather" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Weather Radar</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="weather-root"></div>
+      </section>
+
+
+      <!-- BELL HOLE -->
+      <section id="view-bellhole" class="view view-scroll" data-view="bellhole" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="inspect">←</button>
+          <h1>Bell Hole</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="bellhole-root"></div>
+      </section>
+
+      <!-- MITTI (SAFETYCULTURE) -->
+      <section id="view-mitti" class="view view-scroll" data-view="mitti" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more" aria-label="Back">←</button>
+          <h1>Mitti</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="mitti-root"></div>
+      </section>
+
+      <!-- LOOKUPS -->
+      <section id="view-lookups" class="view view-scroll" data-view="lookups" hidden>
+        <header class="top-bar">
+          <button type="button" class="back-btn" data-nav="more">←</button>
+          <h1>Lookups</h1>
+          <span class="top-spacer"></span>
+        </header>
+        <div class="tool-body" id="lookups-root"></div>
+      </section>
+    </div>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button type="button" class="bottom-nav-btn is-active" data-nav="home">
+        <span class="bottom-nav-icon" aria-hidden="true">⌂</span>
+        <span>Home</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="projects">
+        <span class="bottom-nav-icon" aria-hidden="true">▣</span>
+        <span>Projects</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="inspect">
+        <span class="bottom-nav-icon" aria-hidden="true">📐</span>
+        <span>Inspect</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="reports">
+        <span class="bottom-nav-icon" aria-hidden="true">▤</span>
+        <span>Reports</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="more">
+        <span class="bottom-nav-icon" aria-hidden="true">☰</span>
+        <span>More</span>
+      </button>
+    </nav>
+
+    <dialog id="info-dialog">
+      <form method="dialog" class="dialog-body">
+        <h2>About &amp; disclaimer</h2>
+        <p>
+          <strong>Utility Inspector Guide</strong> is a mobile field toolkit: OSHA trench slope overlays,
+          stamped photos, bell hole checklist, depth of cover, 811 checklist, trench card, pressure log, materials check-in, daily progress report, Station Locator (KMZ), Weather Radar (keyless NEXRAD + Blitzortung), Scope of Work search (PDF page highlights), and lookups.
+        </p>
+        <p class="disclaimer">
+          <strong>Educational / field reference only.</strong> Not engineering advice. Not a substitute for a
+          competent person, site-specific classification, protective systems, or applicable OSHA / local rules.
+          Confirm clearances and cover mins against your company standards and codes.
+          Compliance screens (projects, OQ, crew, Start of Day) are on-device records only — not ISNetworld, Veriforce, or Mitti API integrations.
+          Always follow the operator SOW, approved procedures, and applicable regulation.
+        </p>
+        <p class="howto">Install via Add to Home Screen for offline use after the first visit. Camera and motion need HTTPS.</p>
+        <button type="submit" class="primary-btn">Got it</button>
+      </form>
+    </dialog>
+
+    <dialog id="tool-info-dialog">
+      <form method="dialog" class="dialog-body">
+        <h2 id="tool-info-title">Help</h2>
+        <div id="tool-info-body"></div>
+        <button type="submit" class="primary-btn">Got it</button>
+      </form>
+    </dialog>
+
+  </body>
+</html>
