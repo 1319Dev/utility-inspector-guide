@@ -241,6 +241,70 @@ test.describe('Phase 0/1 field regressions @390', () => {
     await expect(page.locator('#home-root, #sync-banner').first()).toBeVisible();
   });
 
+  test('trench slope camera stage stays taller than the soil controls', async () => {
+    async function measure() {
+      return page.evaluate(() => {
+        const stage = document.querySelector('.stage').getBoundingClientRect();
+        const controls = document.querySelector('.controls').getBoundingClientRect();
+        const nav = document.querySelector('.bottom-nav').getBoundingClientRect();
+        const soil = [...document.querySelectorAll('.soil-btn')].map((el) => el.getBoundingClientRect());
+        const camera = getComputedStyle(document.getElementById('camera'));
+        const overlay = getComputedStyle(document.getElementById('overlay'));
+        const controlsStyle = getComputedStyle(document.querySelector('.controls'));
+        return {
+          vh: window.innerHeight,
+          stageH: stage.height,
+          stageBottom: stage.bottom,
+          controlsTop: controls.top,
+          controlsH: controls.height,
+          controlsBottom: controls.bottom,
+          navTop: nav.top,
+          soilCount: soil.length,
+          soilInside: soil.every(
+            (b) => b.height > 40 && b.top >= controls.top - 1 && b.bottom <= controls.bottom + 1
+          ),
+          lineGuide: !!document.querySelector('#line-guide'),
+          objectFit: camera.objectFit,
+          overlayFit: overlay.objectFit,
+          cameraPos: camera.position,
+          controlsPadBottom: controlsStyle.paddingBottom,
+        };
+      });
+    }
+
+    const check = (box, label) => {
+      expect(box.stageH, `${label} stage height`).toBeGreaterThan(280);
+      expect(box.stageH, `${label} stage vs controls`).toBeGreaterThan(box.controlsH);
+      expect(box.controlsH, `${label} controls cap`).toBeLessThanOrEqual(box.vh * 0.34 + 8);
+      expect(box.stageBottom, `${label} stage/controls overlap`).toBeLessThanOrEqual(box.controlsTop + 1);
+      expect(box.controlsBottom, `${label} controls/nav overlap`).toBeLessThanOrEqual(box.navTop + 2);
+      expect(box.soilCount).toBe(3);
+      expect(box.soilInside, `${label} soil buttons clipped`).toBe(true);
+      expect(box.lineGuide).toBe(true);
+      expect(box.objectFit).toBe('cover');
+      expect(box.overlayFit).toBe('cover');
+      expect(box.cameraPos).toBe('absolute');
+      expect(box.controlsPadBottom).toBe('12px');
+    };
+
+    await page.goto('/#slope');
+    await expect(page.locator('#view-slope:not([hidden]) .stage')).toBeVisible();
+    await expect(page.locator('.soil-btn.active')).toHaveAttribute('data-soil', 'B');
+    check(await measure(), '844');
+
+    try {
+      await page.setViewportSize({ width: 390, height: 680 });
+      check(await measure(), '680');
+    } finally {
+      await page.setViewportSize({ width: 390, height: 844 });
+    }
+
+    await tapNav(page, 'inspect');
+    await expect(page.locator('#view-inspect:not([hidden])')).toBeVisible();
+    await expect(page.locator('.bottom-nav [data-nav="inspect"]')).toHaveClass(/is-active/);
+    await assertNoOverflow(page);
+  });
+
   test('legacy tool routes still mount', async () => {
     for (const name of LEGACY) {
       await page.goto(`/#${name}`);

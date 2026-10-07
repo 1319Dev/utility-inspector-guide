@@ -100,10 +100,13 @@ body.view-slope {
 
 .view-fill {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  /* Stage keeps a real floor. The controls track can shrink so it scrolls
+     instead of collapsing the camera (Safari ignores max-height on an auto row). */
+  grid-template-rows: auto minmax(48dvh, 1fr) minmax(0, min(34dvh, 320px));
   height: calc(100dvh - var(--banner-h) - var(--safe-top) - var(--nav-h) - var(--safe-bottom));
   max-width: 480px;
   margin: 0 auto;
+  min-height: 0;
 }
 
 /* Scoped to .view — body also gets view-scroll for overflow, and must stay block. */
@@ -374,7 +377,7 @@ body.view-slope {
   position: relative;
   background: #020617;
   overflow: hidden;
-  min-height: 0;
+  min-height: min(48dvh, 420px);
 }
 
 #camera,
@@ -581,12 +584,15 @@ body.view-slope {
   z-index: 5;
   background: rgba(11, 18, 32, 0.97);
   border-top: 1px solid var(--line);
-  padding: 12px 12px calc(12px + var(--safe-bottom));
+  /* Bottom nav + safe area already live on #app / .bottom-nav. */
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 48vh;
+  min-height: 0;
+  max-height: min(34dvh, 320px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2281,6 +2287,42 @@ button.list-btn {
     white-space: normal;
     max-width: calc(100% - 16px);
     text-align: center;
+  }
+}
+
+/* Short phones: keep soil buttons on screen and tighten the line guide. */
+@media (max-height: 760px) {
+  .controls {
+    gap: 8px;
+    padding: 8px 12px 12px;
+  }
+
+  .soil-btn {
+    min-height: 64px;
+    padding: 6px 4px;
+  }
+
+  .meta-chip {
+    padding: 6px 10px;
+  }
+
+  .line-guide {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+
+  .line-guide-list {
+    gap: 4px;
+  }
+
+  .line-guide-list li {
+    font-size: 0.75rem;
+    line-height: 1.25;
+    gap: 8px;
+  }
+
+  .line-guide-tip {
+    display: none;
   }
 }
 
